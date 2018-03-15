@@ -69,8 +69,7 @@ def process_inputs(mode):
 
     min_queue_examples = int(0.4*arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN)
 
-#    shuffle = True if mode == "training" else False
-    shuffle = False
+    shuffle = True if mode == "training" else False
     images, labels = _generate_image_and_label_batch(image, label,
                                                      min_queue_examples, FLAGS.batch_size,
                                                      shuffle=shuffle)
