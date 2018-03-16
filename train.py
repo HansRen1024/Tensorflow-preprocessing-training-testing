@@ -135,6 +135,11 @@ def train_dis_():
             
             tf.summary.scalar('loss', loss)
             
+            acc = tf.nn.in_top_k(logits,labels,1)
+            acc = tf.cast(acc,tf.float32)
+            acc = tf.reduce_mean(acc)
+            tf.summary.scalar('accuracy', acc)
+            
             train_op = _optimization(loss, global_step)
             class _LoggerHook(tf.train.SessionRunHook):
     
