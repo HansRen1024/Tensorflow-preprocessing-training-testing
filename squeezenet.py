@@ -80,6 +80,7 @@ def _convolution_layer(bottom, shape, name):
         print('Out features: %s' % out_features)
         print('---------------------------------')
 
+        # He initialization
         stddev = (2 / (in_features + out_features))**0.5
         
         filt = _variable_with_weight_decay(shape, stddev, wd) 
@@ -88,9 +89,14 @@ def _convolution_layer(bottom, shape, name):
         conv_biases = _bias_variable([filt.get_shape()[3]], constant=0.0)
         bias = tf.nn.bias_add(conv, conv_biases)
         
+        if name == 'conv10':
+            out = bias
+        else:
+            out = tf.nn.elu(bias)
+        
         # Add summary to Tensorboard
-        _activation_summary(bias)
-        return bias
+        _activation_summary(out)
+        return out
 
 def _max_pool(bottom, name, debug):
     pool = tf.nn.max_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
