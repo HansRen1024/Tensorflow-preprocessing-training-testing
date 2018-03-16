@@ -18,6 +18,7 @@ import tensorflow as tf
 import arg_parsing
 import dataset
 import network
+import squeezenet
 import test
 
 FLAGS = arg_parsing.parser.parse_args()
@@ -68,6 +69,7 @@ def train():
             images, labels = dataset.process_inputs("training")
 
         logits = network.inference(images,True)
+#        logits = squeezenet.inference(images,True)
         loss = _loss(logits, labels)
 
         train_op = _optimization(loss, global_step)
@@ -119,7 +121,6 @@ def train_dis_():
                              task_index=FLAGS.task_index)
     if FLAGS.job_name == "ps":
         server.join()
-#        tf.Session()
     if FLAGS.job_name == "worker":
     
         with tf.device(tf.train.replica_device_setter(
@@ -128,8 +129,12 @@ def train_dis_():
             global_step = tf.Variable(0, dtype=tf.int32, name='global_step', trainable=False)
 #            global_step = tf.contrib.framework.get_or_create_global_step()
             images, labels = dataset.process_inputs("training")
-            logits = network.inference(images, True)
+#            logits = network.inference(images, True)
+            logits = squeezenet.inference(images,True)
             loss = _loss(logits, labels)
+            
+            tf.summary.scalar('loss', loss)
+            
             train_op = _optimization(loss, global_step)
             class _LoggerHook(tf.train.SessionRunHook):
     
@@ -234,7 +239,7 @@ def train_dis():
             init_op = tf.global_variables_initializer()
           
             saver = tf.train.Saver()
-            tf.summary.scalar('cost', loss)
+            tf.summary.scalar('loss', loss)
             summary_op = tf.summary.merge_all()
      
         sv = tf.train.Supervisor(is_chief=(FLAGS.task_index == 0),
