@@ -23,6 +23,7 @@ NUM_EPOCHS_PER_DECAY = 50
 LEARNING_RATE_DECAY_FACTOR = 0.75
 INITIAL_LEARNING_RATE = 0.01
 STEPS_TO_VAL = 1000
+WEIGHT_DECAY = 2e-4
 
 
 parser = argparse.ArgumentParser()
@@ -42,6 +43,8 @@ parser.add_argument('--log_frequency', type=int, default=100,
                     help='How often to log results to the console.')
 parser.add_argument('--log_device_placement', type=bool, default=False,
                     help='Whether to log device placement.')
+parser.add_argument('--debug', type=bool, default=False,
+                    help='Whether to debug.')
 
 # For distributed
 parser.add_argument("--ps_hosts", type=str,
