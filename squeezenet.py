@@ -156,6 +156,7 @@ def inference(images, train=True):
     tf.summary.image("pool3", tf.expand_dims(pool3[:,:,:,0], dim=3))
 
     fire4_squeeze1x1 = _convolution_layer(pool3, [1,1,128,128], "fire4_squeeze1x1")
+    tf.summary.image("fire4_squeeze1x1", tf.expand_dims(fire4_squeeze1x1[:,:,:,0], dim=3))
     fire4_expand1x1 = _convolution_layer(fire4_squeeze1x1, [1,1,128,128], "fire4_expand1x1")
     fire4_expand3x3 = _convolution_layer(fire4_squeeze1x1, [3,3,128,128], "fire4_expand3x3")
     fire4_concat = tf.concat([fire4_expand1x1, fire4_expand3x3], 3)
