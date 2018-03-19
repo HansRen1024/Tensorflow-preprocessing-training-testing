@@ -15,11 +15,11 @@ import time
 from datetime import datetime
 
 import tensorflow as tf
+from tensorflow.python import debug as tfdbg
 import arg_parsing
 import dataset
 import network
 import squeezenet
-import test
 
 FLAGS = arg_parsing.parser.parse_args()
 
@@ -63,54 +63,64 @@ def _optimization(total_loss, global_step):
 
 def train():
     with tf.Graph().as_default():
-        global_step = tf.train.get_or_create_global_step()
+#        global_step = tf.train.get_or_create_global_step()
+        global_step = tf.Variable(0, dtype=tf.int32, name='global_step', trainable=False)
 
         with tf.device('/cpu:0'):
             images, labels = dataset.process_inputs("training")
 
-        logits = network.inference(images,True)
-#        logits = squeezenet.inference(images,True)
+#        logits = network.inference(images,True)
+        logits = squeezenet.inference(images,True)
         loss = _loss(logits, labels)
-
+        tf.summary.scalar('loss', loss)
+        acc = tf.nn.in_top_k(logits,labels,1)
+        acc = tf.cast(acc,tf.float32)
+        acc = tf.reduce_mean(acc)
+        tf.summary.scalar('accuracy', acc)
         train_op = _optimization(loss, global_step)
 
         class _LoggerHook(tf.train.SessionRunHook):
 
             def begin(self):
-                self._step = -1
+                self._step = 0
                 self._start_time = time.time()
+                self._total_loss = 0
 
             def before_run(self, run_context):
-                self._step += 1
+                
                 return tf.train.SessionRunArgs(loss)
 
             def after_run(self, run_context, run_values):
+                loss_value = run_values.results
+                self._total_loss += loss_value
                 if self._step % FLAGS.log_frequency == 0:
                     current_time = time.time()
                     duration = current_time - self._start_time
                     self._start_time = current_time
 
-                    loss_value = run_values.results
+                    if self._step==0:
+                        avg_loss = loss_value
+                    else:
+                        avg_loss = self._total_loss/self._step
                     eg_per_sec = FLAGS.log_frequency * FLAGS.batch_size / duration
                     sec_per_batch = float(duration / FLAGS.log_frequency)
 
-                    print('%s: training step %d, loss = %.2f (%.1f examples/sec; %.3f sec/batch)'
-                          % (datetime.now(), self._step, loss_value, eg_per_sec, sec_per_batch))
-                if self._step % arg_parsing.STEPS_TO_VAL == 0:
-                    test.test('val')
+                    print('%s: training step %d, current loss = %.4f, avg loss = %.4f (%.1f images/sec; %.3f sec/batch)'
+                          % (datetime.now(), self._step, loss_value, avg_loss, eg_per_sec, sec_per_batch))
+                self._step += 1
+#                if self._step % arg_parsing.STEPS_TO_VAL == 0:
+#                    test.test('val')
 
         with tf.train.MonitoredTrainingSession(
                 checkpoint_dir=FLAGS.model_dir,
                 hooks=[tf.train.StopAtStepHook(last_step=FLAGS.max_steps),
                        tf.train.NanTensorHook(loss),
+#                       tfdbg.LocalCLIDebugHook(ui_type='curses'),
                        _LoggerHook()],
                 config=tf.ConfigProto(
                        log_device_placement=FLAGS.log_device_placement)) as mon_sess:
             while not mon_sess.should_stop():
                 mon_sess.run(train_op)
-                    
-#                 from tensorflow.python import debug as tf_debug
-#                 mon_sess = tf_debug.LocalCLIDebugWrapperSession(mon_sess)
 
 def train_dis_():
     ps_hosts = FLAGS.ps_hosts.split(",")
@@ -149,7 +159,6 @@ def train_dis_():
                     self._total_loss = 0
 
                 def before_run(self, run_context):
-                    self._step += 1
                     return tf.train.SessionRunArgs(loss)
 
                 def after_run(self, run_context, run_values):
@@ -160,12 +169,16 @@ def train_dis_():
                         duration = current_time - self._start_time
                         self._start_time = current_time
                         
-                        avg_loss = self._total_loss/self._step
+                        if self._step==0:
+                            avg_loss = loss_value
+                        else:
+                            avg_loss = self._total_loss/self._step
                         eg_per_sec = FLAGS.log_frequency * FLAGS.batch_size / duration
                         sec_per_batch = float(duration / FLAGS.log_frequency)
     
                         print('%s: training step %d, current loss = %.4f, avg loss = %.4f (%.1f images/sec; %.3f sec/batch)'
                               % (datetime.now(), self._step, loss_value, avg_loss, eg_per_sec, sec_per_batch))
+                    self._step += 1
 #                    if FLAGS.task_index==0 and self._step % arg_parsing.STEPS_TO_VAL == 0:
 #                        test.test('val')
     
@@ -175,13 +188,14 @@ def train_dis_():
                     checkpoint_dir=FLAGS.model_dir,
                     hooks=[tf.train.StopAtStepHook(last_step=FLAGS.max_steps),
                            tf.train.NanTensorHook(loss),
+                          # tfdbg.LocalCLIDebugHook(ui_type='curses'),
                            _LoggerHook()],
                     config=tf.ConfigProto(
                            log_device_placement=FLAGS.log_device_placement)) as mon_sess:
                 while not mon_sess.should_stop():
                     mon_sess.run(train_op)
            
-def train_dis():
+def train_dis(): #not work
     ps_hosts = FLAGS.ps_hosts.split(",")
     worker_hosts = FLAGS.worker_hosts.split(",")
     cluster = tf.train.ClusterSpec({"ps": ps_hosts, "worker": worker_hosts})
