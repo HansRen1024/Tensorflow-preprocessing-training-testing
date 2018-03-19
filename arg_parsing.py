@@ -17,6 +17,7 @@ NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 27013
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 4996
 NUM_EXAMPLES_PER_EPOCH_FOR_TEST = 10000
 NUM_LABELS = 17
+IMAGE_SHAPE = 227
 
 MOVING_AVERAGE_DECAY = 0.9999
 NUM_EPOCHS_PER_DECAY = 50
@@ -43,8 +44,6 @@ parser.add_argument('--log_frequency', type=int, default=100,
                     help='How often to log results to the console.')
 parser.add_argument('--log_device_placement', type=bool, default=False,
                     help='Whether to log device placement.')
-parser.add_argument('--debug', type=bool, default=False,
-                    help='Whether to debug.')
 
 # For distributed
 parser.add_argument("--ps_hosts", type=str,
