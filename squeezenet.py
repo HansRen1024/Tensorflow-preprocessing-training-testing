@@ -18,7 +18,6 @@ TOWER_NAME = 'tower'
 FLAGS = arg_parsing.parser.parse_args()
 
 wd = arg_parsing.WEIGHT_DECAY # Weight decay
-debug = FLAGS.debug
 NUM_CLASSES = arg_parsing.NUM_LABELS
 
 def _activation_summary(x):
@@ -80,7 +79,7 @@ def _convolution_layer(bottom, shape, name):
         print('Out features: %s' % out_features)
         print('---------------------------------')
 
-        # He initialization
+        # initialization
         stddev = (2 / (in_features + out_features))**0.5
         
         filt = _variable_with_weight_decay(shape, stddev, wd) 
@@ -98,16 +97,12 @@ def _convolution_layer(bottom, shape, name):
         _activation_summary(out)
         return out
 
-def _max_pool(bottom, name, debug):
+def _max_pool(bottom, name):
     pool = tf.nn.max_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
                           padding='SAME', name=name)
     print('Layer name: %s' % name)
     print('Layer shape:%s' % str(pool.get_shape()))
     print('---------------------------------')
-    if debug:
-        pool = tf.Print(pool, [pool.get_shape()],
-                        message='Shape of %s' % name,
-                        summarize=4, first_n=1)
     _activation_summary(pool)
     return pool
 
@@ -139,7 +134,7 @@ def inference(images, train=True):
 #        bgr.set_shape([batch_size, 227, 227, 3])
     conv1 = _convolution_layer(images, [3,3,3,64], "conv1")
     tf.summary.image("conv1", tf.expand_dims(conv1[:,:,:,0], dim=3))
-    pool1 = _max_pool(conv1, 'pool1', debug)
+    pool1 = _max_pool(conv1, 'pool1')
     tf.summary.image("pool1", tf.expand_dims(pool1[:,:,:,0], dim=3))
     
     fire2_squeeze1x1 = _convolution_layer(pool1, [1,1,64,16], "fire2_squeeze1x1")
@@ -152,7 +147,7 @@ def inference(images, train=True):
     fire3_expand1x1 = _convolution_layer(fire3_squeeze1x1, [1,1,16,64], "fire3_expand1x1")
     fire3_expand3x3 = _convolution_layer(fire3_squeeze1x1, [3,3,16,64], "fire3_expand3x3")
     fire3_concat = tf.concat([fire3_expand1x1, fire3_expand3x3], 3)
-    pool3 = _max_pool(fire3_concat, 'pool3', debug)    
+    pool3 = _max_pool(fire3_concat, 'pool3')    
     tf.summary.image("pool3", tf.expand_dims(pool3[:,:,:,0], dim=3))
 
     fire4_squeeze1x1 = _convolution_layer(pool3, [1,1,128,128], "fire4_squeeze1x1")
@@ -166,7 +161,7 @@ def inference(images, train=True):
     fire5_expand1x1 = _convolution_layer(fire5_squeeze1x1, [1,1,128,128], "fire5_expand1x1")
     fire5_expand3x3 = _convolution_layer(fire5_squeeze1x1, [3,3,128,128], "fire5_expand3x3")
     fire5_concat = tf.concat([fire5_expand1x1, fire5_expand3x3], 3)
-    pool5 = _max_pool(fire5_concat, 'pool5', debug)
+    pool5 = _max_pool(fire5_concat, 'pool5')
     tf.summary.image("pool5", tf.expand_dims(pool5[:,:,:,0], dim=3))   
     
     fire6_squeeze1x1 = _convolution_layer(pool5, [1,1,256,48], "fire6_squeeze1x1")
