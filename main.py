@@ -24,17 +24,18 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 def main(argv=None):
 
     FLAGS = arg_parsing.parser.parse_args()
-
-    if (FLAGS.mode == 'training'):
+    if (FLAGS.mode == 'training_dis'):
 #        if tf.gfile.Exists(FLAGS.model_dir):
 #            tf.gfile.DeleteRecursively(FLAGS.model_dir)
 #        tf.gfile.MakeDirs(FLAGS.model_dir)
         train.train_dis_()
+    elif (FLAGS.mode == 'training'):
+        train.train()
 
     elif (FLAGS.mode == 'testing'):
         test.test(FLAGS.mode)
     else:
-        raise ValueError("set --mode as 'training' or 'testing'")
+        raise ValueError("set --mode as 'training' or 'testing' or 'training_dis'")
 
 if __name__ == '__main__':
     tf.app.run()
