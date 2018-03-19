@@ -27,8 +27,8 @@ WEIGHT_DECAY = 2e-4
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--mode', type=str, default='training',
-                    help='Either `training` or `testing`.')
+parser.add_argument('--mode', type=str,
+                    help='Either `training` or `testing` or `training_dis` .')
 parser.add_argument('--data_dir', type=str, default='data/',
                     help='Path to data directory.')
 parser.add_argument('--model_dir', type=str, default='models/',
