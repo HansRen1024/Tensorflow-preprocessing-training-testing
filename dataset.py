@@ -47,7 +47,7 @@ def read_and_decode(filename):
                                        'img_raw' : tf.FixedLenFeature([], tf.string),
                                        })
     img = tf.decode_raw(features['img_raw'], tf.uint8)
-    img = tf.reshape(img, [227, 227, 3])
+    img = tf.reshape(img, [arg_parsing.IMAGE_SHAPE, arg_parsing.IMAGE_SHAPE, 3])
     img = tf.cast(img, tf.float32) * (1. / 255) - 0.5
     label = tf.cast(features['label'], tf.int32)
     return img, label
