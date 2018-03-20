@@ -10,14 +10,19 @@ Created on Tue Mar 13 10:25:31 2018
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+import tensorflow as tf
 
 import argparse
 
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 27013
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 4996
-NUM_EXAMPLES_PER_EPOCH_FOR_TEST = 10000
+NUM_EXAMPLES_PER_EPOCH_FOR_TEST = 20
 NUM_LABELS = 17
 IMAGE_SHAPE = 227
+b = tf.Variable(82.4088, dtype=tf.float32, name='b', trainable=False)
+g = tf.Variable(114.4588, dtype=tf.float32, name='g', trainable=False)
+r = tf.Variable(139.1493, dtype=tf.float32, name='r', trainable=False)
+MEAN = [b, g, r]
 
 MOVING_AVERAGE_DECAY = 0.9999
 NUM_EPOCHS_PER_DECAY = 50
@@ -34,7 +39,7 @@ parser.add_argument('--data_dir', type=str, default='data/',
                     help='Path to data directory.')
 parser.add_argument('--model_dir', type=str, default='models/',
                     help='Directory where to write event logs and checkpoint.')
-parser.add_argument('--batch_size', type=int, default=1,
+parser.add_argument('--batch_size', type=int, default=8,
                     help='Number of images to process in a batch.')
 parser.add_argument('--use_fp16', type=bool, default=False,
                     help='Train the model using fp16.')
