@@ -15,7 +15,6 @@ import os
 import tensorflow as tf
 
 import arg_parsing
-
 FLAGS = arg_parsing.parser.parse_args()
 
 def _generate_image_and_label_batch(image, label, min_q_eg, batch_size, shuffle):
@@ -48,6 +47,11 @@ def read_and_decode(filename):
                                        })
     img = tf.decode_raw(features['img_raw'], tf.uint8)
     img = tf.reshape(img, [arg_parsing.IMAGE_SHAPE, arg_parsing.IMAGE_SHAPE, 3])
+    red, green, blue = tf.split(img, 3, 2)
+    blue = tf.cast(blue, tf.float32)-arg_parsing.MEAN[0]
+    green = tf.cast(green, tf.float32)-arg_parsing.MEAN[1]
+    red = tf.cast(red, tf.float32)-arg_parsing.MEAN[2]
+    img = tf.concat([blue, green, red], 2)
     img = tf.cast(img, tf.float32) * (1. / 255) - 0.5
     label = tf.cast(features['label'], tf.int32)
     return img, label
@@ -58,7 +62,7 @@ def process_inputs(mode):
     if mode == "training":
         filename = os.path.join(data_dir, 'train.tfrecords')
     elif mode == "testing":
-        filename = os.path.join(data_dir, 'train_all.tfrecords')
+        filename = os.path.join(data_dir, 'test.tfrecords')
     elif mode == "val":
         filename = os.path.join(data_dir, 'val.tfrecords')
 
@@ -80,4 +84,6 @@ def process_inputs(mode):
         labels = tf.cast(labels, tf.float16)
 
     return images, labels
+
 #images, labels = process_inputs("training")
+image, label = read_and_decode("../data/test.tfrecords")
