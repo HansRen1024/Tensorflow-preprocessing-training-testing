@@ -9,14 +9,18 @@ Created on Tue Mar 13 10:25:31 2018
 
 import os
 import tensorflow as tf 
-from PIL import Image
+import cv2
 
-file_path = 'train.txt'
+mode='test' # train or val or test
+root_path='/home/hans/caffe/Home/fruit-2.0/image/' 
+size=227
 
-root_path = '/home/hans/caffe/Home/image/'
-writer_name = file_path.split('.',1)[0]
-writer = tf.python_io.TFRecordWriter(writer_name+".tfrecords")
+file_path = mode+'.txt'
+writer = tf.python_io.TFRecordWriter('data/' + mode + ".tfrecords")
 num=1;
+b_mean_total = 0
+g_mean_total = 0
+r_mean_total = 0
 
 if not os.path.isfile(file_path):
     raise TypeError(file_path + " does not exist")
@@ -30,10 +34,24 @@ with open(file_path) as f:
         if not os.path.isfile(img_path):
             line = f.readline()
             continue
-        img = Image.open(img_path)
-        img = img.resize((227, 227))
-        img = img.convert('RGB')
-        img_raw = img.tobytes()
+        
+#        from PIL import Image
+#        img = Image.open(img_path)
+#        img = img.resize((size, size))
+#        img = img.convert('RGB')
+#        img_raw = img.tobytes()
+        
+        image = cv2.imread(img_path)
+        image = cv2.resize(image,(size,size))
+        b,g,r = cv2.split(image)
+        
+        b_mean_total += b.mean()
+        g_mean_total += g.mean()
+        r_mean_total += r.mean()
+        
+        rgb_image = cv2.merge([r,g,b])
+        img_raw = rgb_image.tostring()
+        
         example = tf.train.Example(features=tf.train.Features(feature={
                 "label": tf.train.Feature(int64_list=tf.train.Int64List(value=[index])),
                 'img_raw': tf.train.Feature(bytes_list=tf.train.BytesList(value=[img_raw]))
@@ -42,3 +60,4 @@ with open(file_path) as f:
         num=num+1
         line = f.readline()
 writer.close()
+print('>>>>BGR mean values: [%.4f, %.4f, %.4f]' %(b_mean_total/float(num), g_mean_total/float(num), r_mean_total/float(num)))
