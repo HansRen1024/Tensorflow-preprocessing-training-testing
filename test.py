@@ -61,7 +61,7 @@ def test(mode):
                 true_count += np.sum(predictions)
                 step += 1
                 if step%100==0 and mode=='testing':
-                    pre = true_count/step
+                    pre = true_count/(step * FLAGS.batch_size)
                     print('%s: testing step: %s precision: %.3f' % (datetime.now(), step, pre))
 
             precision = true_count / total_sample_count
