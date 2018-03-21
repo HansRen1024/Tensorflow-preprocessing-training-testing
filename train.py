@@ -20,6 +20,7 @@ import dataset
 import network
 import squeezenet
 import mobilenet
+import mobilenetv2
 
 FLAGS = arg_parsing.parser.parse_args()
 
@@ -89,9 +90,11 @@ def train():
     with tf.device('/cpu:0'):
         images, labels = dataset.process_inputs("training")
     if arg_parsing.NET == 'squeezenet':
-        logits = squeezenet.inference(images,True)
+        logits = squeezenet.inference(images)
     elif arg_parsing.NET == 'mobilenet':
-        logits = mobilenet.inference(images,True)
+        logits = mobilenet.inference(images)
+    elif arg_parsing.NET == 'mobilenetv2':
+        logits = mobilenetv2.inference(images)
     loss = _loss(logits, labels)
     tf.summary.scalar('loss', loss)
     acc = tf.nn.in_top_k(logits,labels,1)
@@ -141,6 +144,8 @@ def train_dis_():
                 logits = squeezenet.inference(images)
             elif arg_parsing.NET == 'mobilenet':
                 logits = mobilenet.inference(images)
+            elif arg_parsing.NET == 'mobilenetv2':
+                logits = mobilenetv2.inference(images)
             loss = _loss(logits, labels)
             tf.summary.scalar('loss', loss)
             acc = tf.nn.in_top_k(logits,labels,1)
