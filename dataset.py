@@ -15,7 +15,6 @@ import os
 import tensorflow as tf
 
 import arg_parsing
-FLAGS = arg_parsing.parser.parse_args()
 
 def _generate_image_and_label_batch(image, label, min_q_eg, batch_size, shuffle):
     num_preprocess_threads = 16
@@ -57,12 +56,12 @@ def read_and_decode(filename):
     return img, label
 
 def process_inputs(mode):
-    data_dir = os.path.join(FLAGS.data_dir)
+    data_dir = os.path.join(arg_parsing.DATASET_DIR)
 
     if mode == "training":
         filename = os.path.join(data_dir, 'train.tfrecords')
     elif mode == "testing":
-        filename = os.path.join(data_dir, 'test.tfrecords')
+        filename = os.path.join(data_dir, 'val.tfrecords')
     elif mode == "val":
         filename = os.path.join(data_dir, 'val.tfrecords')
 
@@ -75,15 +74,15 @@ def process_inputs(mode):
 
     shuffle = True if mode == "training" else False
     images, labels = _generate_image_and_label_batch(image, label,
-                                                     min_queue_examples, FLAGS.batch_size,
+                                                     min_queue_examples, arg_parsing.BATCH_SIZE,
                                                      shuffle=shuffle)
 
 
-    if FLAGS.use_fp16:
+    if arg_parsing.USE_FP16:
         images = tf.cast(images, tf.float16)
         labels = tf.cast(labels, tf.float16)
 
     return images, labels
 
 #images, labels = process_inputs("training")
-image, label = read_and_decode("../data/test.tfrecords")
+#image, label = read_and_decode("../data/test.tfrecords")
