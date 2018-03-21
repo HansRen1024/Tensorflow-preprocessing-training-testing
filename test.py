@@ -21,6 +21,7 @@ import arg_parsing
 import dataset
 import squeezenet
 import mobilenet
+import mobilenetv2
 
 def test(mode):
     images, labels = dataset.process_inputs(mode)
@@ -29,6 +30,8 @@ def test(mode):
         logits = squeezenet.inference(images)
     elif arg_parsing.NET == 'mobilenet':
         logits = mobilenet.inference(images)
+    elif arg_parsing.NET == 'mobilenetv2':
+        logits = mobilenetv2.inference(images)
 
     top_k_op = tf.nn.in_top_k(logits, labels, 1)
 
@@ -41,7 +44,7 @@ def test(mode):
         ckpt = tf.train.get_checkpoint_state(arg_parsing.MODEL_DIR)
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
-            global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
+#            global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
         else:
             raise ValueError("No checkpoint file found")
 
