@@ -15,8 +15,6 @@ import arg_parsing
 
 TOWER_NAME = 'tower'
 
-FLAGS = arg_parsing.parser.parse_args()
-
 wd = arg_parsing.WEIGHT_DECAY # Weight decay
 NUM_CLASSES = arg_parsing.NUM_LABELS
 
@@ -116,22 +114,6 @@ def inference(images, train=True):
     -------
     softmax_linear : Output tensor with the computed logits.
     """
-    
-#    if train:
-#        batch_size = FLAGS.batch_size
-#    else:
-#        batch_size = 1
-#    with tf.name_scope('Processing') :
-#    
-#        red, green, blue = tf.split(3, 3, images)
-#
-#        bgr = tf.concat(3, [
-#            blue - MEAN[0],
-#            green - MEAN[1],
-#            red - MEAN[2],
-#        ])
-#    
-#        bgr.set_shape([batch_size, 227, 227, 3])
     conv1 = _convolution_layer(images, [3,3,3,64], "conv1")
     tf.summary.image("conv1", tf.expand_dims(conv1[:,:,:,0], dim=3))
     pool1 = _max_pool(conv1, 'pool1')
