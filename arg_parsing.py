@@ -14,6 +14,7 @@ import tensorflow as tf
 
 import argparse
 
+NET = 'squeezenet' # squeezenet or mobilenet or ...
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 27013
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 4996
 NUM_EXAMPLES_PER_EPOCH_FOR_TEST = 4996
@@ -27,20 +28,20 @@ NUM_EPOCHS_PER_DECAY = 50
 LEARNING_RATE_DECAY_FACTOR = 0.75
 STEPS_TO_VAL = 1000
 WEIGHT_DECAY = 2e-4
-b = tf.Variable(mean[0], dtype=tf.float32, name='b', trainable=False)
-g = tf.Variable(mean[1], dtype=tf.float32, name='g', trainable=False)
-r = tf.Variable(mean[2], dtype=tf.float32, name='r', trainable=False)
-MEAN = [b, g, r]
 
 DEBUG = False
 DATASET_DIR = 'data/' # Path to data directory.
 MODEL_DIR = 'models/' # Directory where to write event logs and checkpoint.
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 LOG_FREQUENCY = 100 # How often to log results to the console.
 MAX_STEPS = 10000 # Number of batches to run.
 LOG_DEVICE_PLACEMENT = False # Whether to log device placement.
 USE_FP16 = False # Train the model using fp16.
 
+b = tf.Variable(mean[0], dtype=tf.float32, name='b', trainable=False)
+g = tf.Variable(mean[1], dtype=tf.float32, name='g', trainable=False)
+r = tf.Variable(mean[2], dtype=tf.float32, name='r', trainable=False)
+MEAN = [b, g, r]
 parser = argparse.ArgumentParser()
 parser.add_argument('--mode', type=str,
                     help='Either `training` or `testing` or `training_dis` .')
