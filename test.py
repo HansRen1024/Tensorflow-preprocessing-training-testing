@@ -21,8 +21,6 @@ import arg_parsing
 import dataset
 import squeezenet
 
-FLAGS = arg_parsing.parser.parse_args()
-
 def test(mode):
     images, labels = dataset.process_inputs(mode)
 
@@ -36,7 +34,7 @@ def test(mode):
     saver = tf.train.Saver(variables_to_restore)
 
     with tf.Session() as sess:
-        ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
+        ckpt = tf.train.get_checkpoint_state(arg_parsing.MODEL_DIR)
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
             global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
@@ -52,16 +50,16 @@ def test(mode):
                 num = arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_TEST
             elif mode=='val':
                 num = arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
-            num_iter = int(math.ceil(num / FLAGS.batch_size))
+            num_iter = int(math.ceil(num / arg_parsing.BATCH_SIZE))
             true_count = 0
-            total_sample_count = num_iter * FLAGS.batch_size
+            total_sample_count = num_iter * arg_parsing.BATCH_SIZE
             step = 0
             while step < num_iter and not coord.should_stop():
                 predictions = sess.run([top_k_op])
                 true_count += np.sum(predictions)
                 step += 1
-                if step%100==0 and mode=='testing':
-                    pre = true_count/(step * FLAGS.batch_size)
+                if step%arg_parsing.LOG_FREQUENCY==0 and mode=='testing':
+                    pre = true_count/(step * arg_parsing.BATCH_SIZE)
                     print('%s: testing step: %s precision: %.3f' % (datetime.now(), step, pre))
 
             precision = true_count / total_sample_count
