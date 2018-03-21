@@ -53,5 +53,4 @@ def inference(images,train=False):
     net = _conv_module(net, arg_parsing.NUM_LABELS, [1, 1], 1, 'conv10', None)
     logits = tf.reduce_mean(net, [1,2], name='logits')
 #    logits = tf.squeeze(net, [1, 2], name='logits')
-
     return logits
