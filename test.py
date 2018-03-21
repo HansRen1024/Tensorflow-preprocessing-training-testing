@@ -20,11 +20,15 @@ import tensorflow as tf
 import arg_parsing
 import dataset
 import squeezenet
+import mobilenet
 
 def test(mode):
     images, labels = dataset.process_inputs(mode)
 
-    logits = squeezenet.inference(images)
+    if arg_parsing.NET == 'squeezenet':
+        logits = squeezenet.inference(images)
+    elif arg_parsing.NET == 'mobilenet':
+        logits = mobilenet.inference(images)
 
     top_k_op = tf.nn.in_top_k(logits, labels, 1)
 
