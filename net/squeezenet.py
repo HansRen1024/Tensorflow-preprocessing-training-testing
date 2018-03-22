@@ -11,6 +11,8 @@ from __future__ import print_function
 
 import tensorflow as tf
 import re
+import sys
+sys.path.append("..")
 import arg_parsing
 
 wd = arg_parsing.WEIGHT_DECAY # Weight decay
