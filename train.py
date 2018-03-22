@@ -17,13 +17,15 @@ import tensorflow as tf
 from tensorflow.python import debug as tfdbg
 import arg_parsing
 import dataset
-import network
-import squeezenet
-import mobilenet
-import mobilenetv2
-import resnet
+from net import network
+from net import squeezenet
+from net import mobilenet
+from net import mobilenetv2
+from net import resnet
 
 FLAGS = arg_parsing.parser.parse_args()
+config = tf.ConfigProto(log_device_placement=arg_parsing.LOG_DEVICE_PLACEMENT)
+config.gpu_options.allow_growth=True
 
 def _logits(images):
     if arg_parsing.NET == 'squeezenet':
@@ -115,6 +117,7 @@ def train():
     acc = tf.reduce_mean(acc)
     tf.summary.scalar('accuracy', acc)
     train_op = _optimization(loss, global_step)
+    
     if arg_parsing.DEBUG:
         with tf.train.MonitoredTrainingSession(
                 checkpoint_dir=arg_parsing.MODEL_DIR,
@@ -123,8 +126,7 @@ def train():
                        tfdbg.LocalCLIDebugHook(ui_type='curses'), # Command-line-interface debugger hook.
 #                       tfdbg.TensorBoardDebugHook(grpc_debug_server_addresses="localhost:6000"), # can be used with TensorBoard Debugger Plugin.
                        _LoggerHook()],
-                config=tf.ConfigProto(
-                       log_device_placement=arg_parsing.LOG_DEVICE_PLACEMENT)) as mon_sess:
+                config=config) as mon_sess:
             while not mon_sess.should_stop():
                 mon_sess.run(train_op)
     else:
@@ -133,8 +135,7 @@ def train():
                 hooks=[tf.train.StopAtStepHook(last_step=arg_parsing.MAX_STEPS),
                        tf.train.NanTensorHook(loss), # Monitors the loss tensor and stops training if loss is NaN.
                        _LoggerHook()],
-                config=tf.ConfigProto(
-                       log_device_placement=arg_parsing.LOG_DEVICE_PLACEMENT)) as mon_sess:
+                config=config) as mon_sess:
             while not mon_sess.should_stop():
                 mon_sess.run(train_op)
 
@@ -171,7 +172,7 @@ def train_dis_():
                                tfdbg.LocalCLIDebugHook(ui_type='curses'), # Command-line-interface debugger hook.
     #                           tfdbg.TensorBoardDebugHook(grpc_debug_server_addresses="localhost:6000"), # can be used with TensorBoard Debugger Plugin.
                                _LoggerHook()],
-                        config=tf.ConfigProto(log_device_placement=arg_parsing.LOG_DEVICE_PLACEMENT)) as mon_sess:
+                        config=config) as mon_sess:
                     while not mon_sess.should_stop():
                         mon_sess.run(train_op)
             else:
@@ -182,7 +183,7 @@ def train_dis_():
                         hooks=[tf.train.StopAtStepHook(last_step=arg_parsing.MAX_STEPS),
                                tf.train.NanTensorHook(loss), # Monitors the loss tensor and stops training if loss is NaN.
                                _LoggerHook()],
-                        config=tf.ConfigProto(log_device_placement=arg_parsing.LOG_DEVICE_PLACEMENT)) as mon_sess:
+                        config=config) as mon_sess:
                     while not mon_sess.should_stop():
                         mon_sess.run(train_op)
             
