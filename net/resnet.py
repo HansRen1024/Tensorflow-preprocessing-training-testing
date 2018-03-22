@@ -11,6 +11,8 @@ from __future__ import print_function
 
 import collections
 import tensorflow as tf
+import sys
+sys.path.append("..")
 import arg_parsing
 slim = tf.contrib.slim
 num_classes = arg_parsing.NUM_LABELS
