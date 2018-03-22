@@ -21,10 +21,28 @@ import network
 import squeezenet
 import mobilenet
 import mobilenetv2
+import resnet
 
 FLAGS = arg_parsing.parser.parse_args()
 
-
+def _logits(images):
+    if arg_parsing.NET == 'squeezenet':
+        logits = squeezenet.inference(images)
+    elif arg_parsing.NET == 'mobilenet':
+        logits = mobilenet.inference(images)
+    elif arg_parsing.NET == 'mobilenetv2':
+        logits = mobilenetv2.inference(images)
+    elif arg_parsing.NET == 'resnet':
+        if arg_parsing.RESNET_LAYER_NUM==50:
+            logits = resnet.resnet_v2_50(images)
+        elif arg_parsing.RESNET_LAYER_NUM==101:
+            logits = resnet.resnet_v2_101(images)
+        elif arg_parsing.RESNET_LAYER_NUM==152:
+            logits = resnet.resnet_v2_152(images)
+        elif arg_parsing.RESNET_LAYER_NUM==200:
+            logits = resnet.resnet_v2_200(images)
+    return logits
+    
 def _loss(logits, labels):
     labels = tf.cast(labels, tf.int64)
     cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
@@ -89,12 +107,7 @@ def train():
     global_step = tf.Variable(0, dtype=tf.int32, name='global_step', trainable=False)
     with tf.device('/cpu:0'):
         images, labels = dataset.process_inputs("training")
-    if arg_parsing.NET == 'squeezenet':
-        logits = squeezenet.inference(images)
-    elif arg_parsing.NET == 'mobilenet':
-        logits = mobilenet.inference(images)
-    elif arg_parsing.NET == 'mobilenetv2':
-        logits = mobilenetv2.inference(images)
+    logits = _logits(images)
     loss = _loss(logits, labels)
     tf.summary.scalar('loss', loss)
     acc = tf.nn.in_top_k(logits,labels,1)
@@ -140,12 +153,7 @@ def train_dis_():
                                                       %FLAGS.task_index,cluster=cluster)):
             global_step = tf.Variable(0, dtype=tf.int32, name='global_step', trainable=False)
             images, labels = dataset.process_inputs("training")
-            if arg_parsing.NET == 'squeezenet':
-                logits = squeezenet.inference(images)
-            elif arg_parsing.NET == 'mobilenet':
-                logits = mobilenet.inference(images)
-            elif arg_parsing.NET == 'mobilenetv2':
-                logits = mobilenetv2.inference(images)
+            logits = _logits(images)
             loss = _loss(logits, labels)
             tf.summary.scalar('loss', loss)
             acc = tf.nn.in_top_k(logits,labels,1)
