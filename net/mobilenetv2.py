@@ -13,6 +13,8 @@ from __future__ import print_function
 import re
 import tensorflow as tf
 import tensorflow.contrib as tc
+import sys
+sys.path.append("..")
 import arg_parsing
 FLAGS = arg_parsing.parser.parse_args()
 if FLAGS.mode == 'training_dis' or FLAGS.mode == 'training':
