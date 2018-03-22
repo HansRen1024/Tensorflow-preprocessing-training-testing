@@ -19,10 +19,10 @@ import tensorflow as tf
 
 import arg_parsing
 import dataset
-import squeezenet
-import mobilenet
-import mobilenetv2
-import resnet
+from net import squeezenet
+from net import mobilenet
+from net import mobilenetv2
+from net import resnet
 
 def test(mode):
     images, labels = dataset.process_inputs(mode)
@@ -49,8 +49,9 @@ def test(mode):
                            arg_parsing.MOVING_AVERAGE_DECAY)
     variables_to_restore = variable_averages.variables_to_restore()
     saver = tf.train.Saver(variables_to_restore)
-
-    with tf.Session() as sess:
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth=True
+    with tf.Session(config=config) as sess:
         ckpt = tf.train.get_checkpoint_state(arg_parsing.MODEL_DIR)
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
