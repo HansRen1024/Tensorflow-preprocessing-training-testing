@@ -22,6 +22,7 @@ import dataset
 import squeezenet
 import mobilenet
 import mobilenetv2
+import resnet
 
 def test(mode):
     images, labels = dataset.process_inputs(mode)
@@ -32,6 +33,15 @@ def test(mode):
         logits = mobilenet.inference(images)
     elif arg_parsing.NET == 'mobilenetv2':
         logits = mobilenetv2.inference(images)
+    elif arg_parsing.NET == 'resnet':
+        if arg_parsing.RESNET_LAYER_NUM==50:
+            logits = resnet.resnet_v2_50(images)
+        elif arg_parsing.RESNET_LAYER_NUM==101:
+            logits = resnet.resnet_v2_101(images)
+        elif arg_parsing.RESNET_LAYER_NUM==152:
+            logits = resnet.resnet_v2_152(images)
+        elif arg_parsing.RESNET_LAYER_NUM==200:
+            logits = resnet.resnet_v2_200(images)
 
     top_k_op = tf.nn.in_top_k(logits, labels, 1)
 
