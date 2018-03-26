@@ -11,8 +11,6 @@ from __future__ import print_function
 
 import tensorflow as tf
 import re
-import sys
-sys.path.append("..")
 import arg_parsing
 
 wd = arg_parsing.WEIGHT_DECAY # Weight decay
@@ -31,7 +29,7 @@ def _activation_summary(x):
   tensor_name = re.sub('tower_[0-9]*/', '', x.op.name)
   tf.summary.image(tensor_name, tf.expand_dims(x[:,:,:,0], dim=3))
   tf.summary.histogram(tensor_name + '/activations', x)
-  tf.summary.scalar(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
+#  tf.summary.scalar(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
 
 def _variable_with_weight_decay(shape, stddev, wd):
     """Helper to create an initialized Variable with weight decay.
@@ -66,16 +64,16 @@ def _bias_variable(shape, constant=0.0):
                            initializer=initializer)
 
 def _convolution_layer(bottom, shape, name):
-    with tf.variable_scope(name) :
-        print('Layer name: %s' % name)
-        print('Layer shape: %s' % str(shape))
+    with tf.variable_scope(name,reuse=tf.AUTO_REUSE):
+#        print('Layer name: %s' % name)
+#        print('Layer shape: %s' % str(shape))
         
         # get number of input channels
         in_features = bottom.get_shape()[3].value
         out_features = shape[3]
-        print('In features: %s' % in_features)
-        print('Out features: %s' % out_features)
-        print('---------------------------------')
+#        print('In features: %s' % in_features)
+#        print('Out features: %s' % out_features)
+#        print('---------------------------------')
 
         # initialization
         stddev = (2 / (in_features + out_features))**0.5
@@ -98,9 +96,9 @@ def _convolution_layer(bottom, shape, name):
 def _max_pool(bottom, name):
     pool = tf.nn.max_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
                           padding='SAME', name=name)
-    print('Layer name: %s' % name)
-    print('Layer shape:%s' % str(pool.get_shape()))
-    print('---------------------------------')
+#    print('Layer name: %s' % name)
+#    print('Layer shape:%s' % str(pool.get_shape()))
+#    print('---------------------------------')
     _activation_summary(pool)
     return pool
 
@@ -114,6 +112,7 @@ def inference(images):
     -------
     softmax_linear : Output tensor with the computed logits.
     """
+    print('network: squeezenet')
     conv1 = _convolution_layer(images, [3,3,3,64], "conv1")
     pool1 = _max_pool(conv1, 'pool1')    
     fire2_squeeze1x1 = _convolution_layer(pool1, [1,1,64,16], "fire2_squeeze1x1")
