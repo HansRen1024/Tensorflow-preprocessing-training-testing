@@ -307,7 +307,7 @@ def resnet_v2(inputs,
   Raises:
     ValueError: If the target output_stride is not valid.
   """
-  with tf.variable_scope(scope, 'resnet_v2', [inputs], reuse=reuse) as sc:
+  with tf.variable_scope(scope, 'resnet_v2', [inputs], reuse=tf.AUTO_REUSE) as sc:
     end_points_collection = sc.name + '_end_points'
     with slim.arg_scope([slim.conv2d, bottleneck,
                          stack_blocks_dense],
@@ -350,6 +350,7 @@ def resnet_v2_50(inputs,
                  reuse=None,
                  scope='resnet_v2_50'):
   """ResNet-50 model of [1]. See resnet_v2() for arg and return description."""
+  print('network: resnet_v2_50')
   blocks = [
       Block(
           'block1', bottleneck, [(256, 64, 1)] * 2 + [(256, 64, 2)]),
@@ -368,6 +369,7 @@ def resnet_v2_101(inputs,
                   reuse=None,
                   scope='resnet_v2_101'):
   """ResNet-101 model of [1]. See resnet_v2() for arg and return description."""
+  print('network: resnet_v2_101')
   blocks = [
       Block(
           'block1', bottleneck, [(256, 64, 1)] * 2 + [(256, 64, 2)]),
@@ -386,6 +388,7 @@ def resnet_v2_152(inputs,
                   reuse=None,
                   scope='resnet_v2_152'):
   """ResNet-152 model of [1]. See resnet_v2() for arg and return description."""
+  print('network: resnet_v2_152')
   blocks = [
       Block(
           'block1', bottleneck, [(256, 64, 1)] * 2 + [(256, 64, 2)]),
@@ -404,6 +407,7 @@ def resnet_v2_200(inputs,
                   reuse=None,
                   scope='resnet_v2_200'):
   """ResNet-200 model of [2]. See resnet_v2() for arg and return description."""
+  print('network: resnet_v2_200')
   blocks = [
       Block(
           'block1', bottleneck, [(256, 64, 1)] * 2 + [(256, 64, 2)]),
