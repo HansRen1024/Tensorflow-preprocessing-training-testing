@@ -9,7 +9,7 @@ Use Tensorflow to do classification containing data preparation, training, testi
 
 中文博客地址： http://blog.csdn.net/renhanchi/article/details/79570665
 
----------------------------------------------------------------------------
+---
 
 **All parameters are in `arg_parsing.py`. So before you start this program, you should read it carefully!**
 
@@ -41,7 +41,7 @@ Use Tensorflow to do classification containing data preparation, training, testi
 
 5. All ckpt and event files will be saved in **MODEL_DIR**.
 
----------------------------------------------------------------------------
+---
 
 **Notes**
 
