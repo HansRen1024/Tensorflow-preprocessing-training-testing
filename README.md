@@ -51,6 +51,6 @@ Do remenber to increase **task_index** in every server.
 
 3. For visualization, run:
 
-    tensorboard --logdir=models/
+       tensorboard --logdir=models/
     
 4. More details, please see my blog above.
