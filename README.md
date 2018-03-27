@@ -5,8 +5,9 @@
 
 Use Tensorflow to do classification containing data preparation, training, testing.(single computer single GPU &amp; single computer multi-GPU &amp; multi-computer multi-GPU)
 
+---------------------------------------------------------------------------
 
-中文地址： http://blog.csdn.net/renhanchi/article/details/79570665
+中文博客地址： http://blog.csdn.net/renhanchi/article/details/79570665
 
 ---------------------------------------------------------------------------
 
@@ -39,6 +40,8 @@ For worker host, run:
 Do remenber to increase **task_index** in every server.
 
 5. All ckpt and event files will be saved in **MODEL_DIR**.
+
+---------------------------------------------------------------------------
 
 **Notes**
 
