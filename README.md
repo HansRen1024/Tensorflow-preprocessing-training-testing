@@ -9,21 +9,21 @@ Use Tensorflow to do classification containing data preparation, training, testi
 中文地址： http://blog.csdn.net/renhanchi/article/details/79570665
 
 
-All parameters are in **arg_parsing.py**. So before you start this program, you should read it carefully.
+    All parameters are in **arg_parsing.py**. So before you start this program, you should read it carefully!!!
 
 **STEPS:**
 
-1.Put all images in different diractories. Then run **img2list.sh** to create a txt file containing pathes and labels of all iamges.
+1. Put all images in different diractories. Then run **img2list.sh** to create a txt file containing pathes and labels of all iamges.
 
 ![txt content](https://img-blog.csdn.net/20180320151535236 "")
 
-2.Run **list2bin.py** to convert the images from rgb to tfrecords.
+2. Run **list2bin.py** to convert the images from rgb to tfrecords.
 
-3.For single computer, one GPU or more, whatever. Just run:
+3. For single computer, one GPU or more, whatever. Just run:
 
     python main.py --mode=training
   
-4.For distribution, first you should modify **PS_HOSTS** and **WORKER_HOSTS** in **arg_parsing.py**. And then copy all dataset and codes to every server. 
+4. For distribution, first you should modify **PS_HOSTS** and **WORKER_HOSTS** in **arg_parsing.py**. And then copy all dataset and codes to every server. 
 
 For ps host, run:
 
@@ -37,4 +37,16 @@ For worker host, run:
 
 Do remenber to increase **task_index** in every server.
 
-5.All ckpt and event files will be in **MODEL_DIR**.
+5. All ckpt and event files will be saved in **MODEL_DIR**.
+
+**Notes**
+
+1. DO READ **arg_parsing.py** again and again to understand and control this program.
+
+2. Use **CUDA_VISIBLE_DEVICES=0,2** to pick up GPUs.
+
+3. For visualization, run:
+
+    tensorboard --logdir=models/
+    
+4. More details, please see my blog above.
