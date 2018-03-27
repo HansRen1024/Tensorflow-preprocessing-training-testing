@@ -21,17 +21,19 @@ All parameters are in **arg_parsing.py**. So before you start this program, you 
 
 3.For single computer, one GPU or more, whatever. Just run:
 
-  python main.py --mode=training
+    python main.py --mode=training
   
 4.For distribution, first you should modify **PS_HOSTS** and **WORKER_HOSTS** in **arg_parsing.py**. And then copy all dataset and codes to every server. 
 
 For ps host, run:
-  CUDA_VISIBLE_DEVICES='' python src/main.py --mode=training_dis --job_name=ps --task_index=0
+
+    CUDA_VISIBLE_DEVICES='' python src/main.py --mode=training_dis --job_name=ps --task_index=0
 
 **CUDA_VISIBLE_DEVICES=''** means using cpu to concat parameters.
 
 For worker host, run:
-  python src/main.py --mode=training_dis --job_name=worker --task_index=0
+
+    python src/main.py --mode=training_dis --job_name=worker --task_index=0
 
 Do remenber to increase **task_index** in every server.
 
