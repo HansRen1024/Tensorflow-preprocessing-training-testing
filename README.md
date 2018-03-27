@@ -27,17 +27,17 @@ Use Tensorflow to do classification containing data preparation, training, testi
   
 4. For distribution, first you should modify **PS_HOSTS** and **WORKER_HOSTS** in **arg_parsing.py**. And then copy all dataset and codes to every server. 
 
-   For ps host, run:
+For ps host, run:
 
     CUDA_VISIBLE_DEVICES='' python src/main.py --mode=training_dis --job_name=ps --task_index=0
 
-**CUDA_VISIBLE_DEVICES=''** means using cpu to concat parameters.
+**CUDA_VISIBLE_DEVICES=''** means using CPU to concat parameters.
 
-   For worker host, run:
+For worker host, run:
 
     python src/main.py --mode=training_dis --job_name=worker --task_index=0
 
-   Do remenber to increase **task_index** in every server.
+Do remenber to increase **task_index** in every server.
 
 5. All ckpt and event files will be saved in **MODEL_DIR**.
 
