@@ -14,7 +14,7 @@ Use Tensorflow to do classification containing data preparation, training, testi
 
 1. Put all images in different diractories. Then run **img2list.sh** to create a txt file containing pathes and labels of all iamges.
 
-![txt content](https://img-blog.csdn.net/20180320151535236 "")
+    ![txt content](https://img-blog.csdn.net/20180320151535236 "")
 
 2. Run **list2bin.py** to convert the images from rgb to tfrecords.
 
