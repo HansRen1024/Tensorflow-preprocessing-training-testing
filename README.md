@@ -8,7 +8,7 @@ Use Tensorflow to do classification containing data preparation, training, testi
 
 中文地址： http://blog.csdn.net/renhanchi/article/details/79570665
 
-**All parameters are in 'arg_parsing.py'. So before you start this program, you should read it carefully!**
+**All parameters are in `arg_parsing.py`. So before you start this program, you should read it carefully!**
 
 **STEPS:**
 
