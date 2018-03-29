@@ -118,7 +118,7 @@ def train():
             log_step_count_steps=None) as sess:
         if FLAGS.finetune:
             print('Load Pretrained model')
-            ckpt = tf.train.get_checkpoint_state(arg_parsing.FINETUNE_DIR)
+            ckpt = tf.train.get_checkpoint_state(FLAGS.finetune)
             if ckpt and ckpt.model_checkpoint_path:
                 saver.restore(sess, ckpt.model_checkpoint_path)
         total_loss = 0
@@ -186,7 +186,7 @@ def train_dis_():
                     log_step_count_steps=None) as sess:
                 if FLAGS.finetune:
                     print('Load Pretrained model')
-                    ckpt = tf.train.get_checkpoint_state(arg_parsing.FINETUNE_DIR)
+                    ckpt = tf.train.get_checkpoint_state(FLAGS.finetune)
                     if ckpt and ckpt.model_checkpoint_path:
                         saver.restore(sess, ckpt.model_checkpoint_path)
                 total_loss = 0
