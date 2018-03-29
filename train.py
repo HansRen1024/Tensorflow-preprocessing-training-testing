@@ -104,6 +104,8 @@ def train():
     all_hooks=[tf.train.NanTensorHook(loss)]
     if arg_parsing.DEBUG:
         all_hooks.append(tfdbg.LocalCLIDebugHook(ui_type='curses'))
+    if arg_parsing.FINETUNE_DIR:
+        saver = tf.train.Saver()
     config = tf.ConfigProto(log_device_placement=arg_parsing.LOG_DEVICE_PLACEMENT)
     config.gpu_options.allow_growth=True
     with tf.train.MonitoredTrainingSession(
@@ -113,6 +115,10 @@ def train():
             save_summaries_steps=100,
             save_summaries_secs=None,
             log_step_count_steps=None) as sess:
+        if arg_parsing.FINETUNE_DIR:
+            ckpt = tf.train.get_checkpoint_state(arg_parsing.FINETUNE_DIR)
+            if ckpt and ckpt.model_checkpoint_path:
+                saver.restore(sess, ckpt.model_checkpoint_path)
         total_loss = 0
         start_time = time.time()
         for i in range(1, arg_parsing.MAX_STEPS+1):
@@ -162,6 +168,8 @@ def train_dis_():
             all_hooks=[tf.train.NanTensorHook(loss)]
             if arg_parsing.DEBUG:
                 all_hooks.append(tfdbg.LocalCLIDebugHook(ui_type='curses'))
+            if arg_parsing.FINETUNE_DIR:
+                saver = tf.train.Saver()
             config = tf.ConfigProto(log_device_placement=arg_parsing.LOG_DEVICE_PLACEMENT)
             config.gpu_options.allow_growth=True
             with tf.train.MonitoredTrainingSession(
@@ -173,6 +181,10 @@ def train_dis_():
                     save_summaries_steps=100,
                     save_summaries_secs=None,
                     log_step_count_steps=None) as sess:
+                if arg_parsing.FINETUNE_DIR:
+                    ckpt = tf.train.get_checkpoint_state(arg_parsing.FINETUNE_DIR)
+                    if ckpt and ckpt.model_checkpoint_path:
+                        saver.restore(sess, ckpt.model_checkpoint_path)
                 total_loss = 0
                 start_time = time.time()
                 for i in range(1, arg_parsing.MAX_STEPS+1):
