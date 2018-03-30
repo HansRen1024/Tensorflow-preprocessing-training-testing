@@ -52,9 +52,9 @@ def _loss(logits, labels):
     return tf.add_n(tf.get_collection('losses'), name='total_loss')
 
 def _optimization(total_loss, global_step):
-    num_batches_per_epoch = arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN / arg_parsing.BATCH_SIZE
+    num_batches_per_epoch = arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN / FLAGS.batch_size
     decay_steps = int(num_batches_per_epoch * arg_parsing.NUM_EPOCHS_PER_DECAY)
-    lr = tf.train.exponential_decay(arg_parsing.INITIAL_LEARNING_RATE,
+    lr = tf.train.exponential_decay(FLAGS.lr,
                                     global_step,
                                     decay_steps,
                                     arg_parsing.LEARNING_RATE_DECAY_FACTOR,
@@ -99,18 +99,18 @@ def train():
     train_op = _optimization(loss, global_step)
     with tf.name_scope("global_step"):
         tf.summary.scalar('global_step', global_step)
-    val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/arg_parsing.BATCH_SIZE))
+    val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/FLAGS.batch_size))
     val_acc_sum = val(loss)
     all_hooks=[tf.train.NanTensorHook(loss)]
-    if arg_parsing.DEBUG:
+    if FLAGS.debug:
         all_hooks.append(tfdbg.LocalCLIDebugHook(ui_type='curses'))
     if FLAGS.finetune:
         print('Finetune from %s'%FLAGS.finetune)
         saver = tf.train.Saver()
-    config = tf.ConfigProto(log_device_placement=arg_parsing.LOG_DEVICE_PLACEMENT)
+    config = tf.ConfigProto(log_device_placement=FLAGS.log_device_placement)
     config.gpu_options.allow_growth=True
     with tf.train.MonitoredTrainingSession(
-            checkpoint_dir=arg_parsing.MODEL_DIR,
+            checkpoint_dir=FLAGS.model_dir,
             hooks=all_hooks,
             config=config,
             save_summaries_steps=100,
@@ -123,19 +123,19 @@ def train():
                 saver.restore(sess, ckpt.model_checkpoint_path)
         total_loss = 0
         start_time = time.time()
-        for i in range(1, arg_parsing.MAX_STEPS+2):
+        for i in range(1, FLAGS.max_steps+1):
             _,loss_value = sess.run([train_op,loss])
             total_loss += loss_value
-            if i % arg_parsing.LOG_FREQUENCY == 0:
+            if i % FLAGS.log_frequency == 0:
                 current_time = time.time()
                 duration = current_time - start_time
-                eg_per_sec = arg_parsing.LOG_FREQUENCY * arg_parsing.BATCH_SIZE / duration
-                sec_per_batch = float(duration / arg_parsing.LOG_FREQUENCY)
+                eg_per_sec = FLAGS.log_frequency * FLAGS.batch_size / duration
+                sec_per_batch = float(duration / FLAGS.log_frequency)
                 avg_loss = total_loss/i
                 print('%s: training step %d cur loss = %.4f avg loss = %.4f (%.1f images/sec, %.3f sec/batch)'
                       % (datetime.now(), i, loss_value, avg_loss, eg_per_sec, sec_per_batch))
                 start_time = time.time()
-            if i % arg_parsing.STEPS_TO_VAL == 0:
+            if i % FLAGS.steps_to_val == 0:
                 total_val_accu=0
                 for j in range(val_step):
                     total_val_accu+=sess.run(val_acc_sum)
@@ -159,26 +159,26 @@ def train_dis_():
             with tf.device('/cpu:0'):
                 images, labels = dataset.process_inputs("training")
             logits = _logits(images)
-            loss = _loss(logits, labels)  
+            loss = _loss(logits, labels)
             train_op = _optimization(loss, global_step)
             with tf.name_scope("global_step"):
                 tf.summary.scalar('global_step', global_step)
 
-            val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/arg_parsing.BATCH_SIZE))
+            val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/FLAGS.batch_size))
             val_acc_sum = val(loss)
 
             all_hooks=[tf.train.NanTensorHook(loss)]
-            if arg_parsing.DEBUG:
+            if FLAGS.debug:
                 all_hooks.append(tfdbg.LocalCLIDebugHook(ui_type='curses'))
             if FLAGS.finetune:
                 print('Finetune from %s'%FLAGS.finetune)
                 saver = tf.train.Saver()
-            config = tf.ConfigProto(log_device_placement=arg_parsing.LOG_DEVICE_PLACEMENT)
+            config = tf.ConfigProto(log_device_placement=FLAGS.log_device_placement)
             config.gpu_options.allow_growth=True
             with tf.train.MonitoredTrainingSession(
                     master=server.target,
                     is_chief=(FLAGS.task_index == 0),
-                    checkpoint_dir=arg_parsing.MODEL_DIR,
+                    checkpoint_dir=FLAGS.model_dir,
                     hooks=all_hooks,
                     config=config,
                     save_summaries_steps=100,
@@ -191,19 +191,19 @@ def train_dis_():
                         saver.restore(sess, ckpt.model_checkpoint_path)
                 total_loss = 0
                 start_time = time.time()
-                for i in range(1, arg_parsing.MAX_STEPS+2):
+                for i in range(1, FLAGS.max_steps+1):
                     _,loss_value = sess.run([train_op,loss])
                     total_loss += loss_value
-                    if i % arg_parsing.LOG_FREQUENCY == 0:
+                    if i % FLAGS.log_frequency == 0:
                         current_time = time.time()
                         duration = current_time - start_time
-                        eg_per_sec = arg_parsing.LOG_FREQUENCY * arg_parsing.BATCH_SIZE / duration
-                        sec_per_batch = float(duration / arg_parsing.LOG_FREQUENCY)
+                        eg_per_sec = FLAGS.log_frequency * FLAGS.batch_size / duration
+                        sec_per_batch = float(duration / FLAGS.log_frequency)
                         avg_loss = total_loss/i
                         print('%s: training step %d cur loss = %.4f avg loss = %.4f (%.1f images/sec, %.3f sec/batch)'
                               % (datetime.now(), i, loss_value, avg_loss, eg_per_sec, sec_per_batch))
                         start_time = time.time()
-                    if i % arg_parsing.STEPS_TO_VAL == 0:
+                    if i % FLAGS.steps_to_val == 0:
                         total_val_accu=0
                         for j in range(val_step):
                             total_val_accu+=sess.run(val_acc_sum)
