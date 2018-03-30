@@ -42,7 +42,7 @@ MAX_STEPS = 10000 # Number of batches to run. If distributiong, all GPU batches.
 LOG_DEVICE_PLACEMENT = False # Whether to log device placement.
 USE_FP16 = False # Train the model using fp16.
 
-parser.add_argument('--lr', type=int, default=INITIAL_LEARNING_RATE)
+parser.add_argument('--lr', type=float, default=INITIAL_LEARNING_RATE)
 parser.add_argument('--steps_to_val', type=int, default=STEPS_TO_VAL)
 parser.add_argument('--debug', type=bool, default=DEBUG)
 parser.add_argument('--dataset_dir', type=str, default=DATASET_DIR)
