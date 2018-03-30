@@ -23,7 +23,7 @@ Use Tensorflow to do classification containing data preparation, training, testi
 
 3. For single computer, one GPU or more, whatever. Just run:
 
-    python main.py --mode=training
+        python main.py --mode=training
   
 4. For distribution, first you should modify **PS_HOSTS** and **WORKER_HOSTS** in **arg_parsing.py**. And then copy all dataset and codes to every server. 
 
