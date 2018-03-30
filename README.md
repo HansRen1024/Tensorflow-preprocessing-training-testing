@@ -47,7 +47,7 @@ Use Tensorflow to do classification containing data preparation, training, testi
 
 1. DO READ **arg_parsing.py** again and again to understand and control this program.
 
-2. Use **CUDA_VISIBLE_DEVICES=0,2** to pick up GPUs.
+2. Use **CUDA_VISIBLE_DEVICES=0,2** to choose GPUs.
 
 3. For visualization, run:
 
