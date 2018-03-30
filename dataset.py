@@ -13,8 +13,8 @@ from __future__ import print_function
 
 import os
 import tensorflow as tf
-
 import arg_parsing
+FLAGS = arg_parsing.parser.parse_args()
 
 def _generate_image_and_label_batch(image, label, min_q_eg, batch_size, shuffle):
     num_preprocess_threads = 16
@@ -45,7 +45,8 @@ def read_and_decode(filename):
                                        'img_raw' : tf.FixedLenFeature([], tf.string),
                                        })
     img = tf.decode_raw(features['img_raw'], tf.uint8)
-    img = tf.reshape(img, [arg_parsing.IMAGE_SHAPE, arg_parsing.IMAGE_SHAPE, 3])
+    img = tf.reshape(img, [arg_parsing.ORIGIN_IMAGE_SHAPE, arg_parsing.ORIGIN_IMAGE_SHAPE, 3])
+    img = tf.image.resize_images(img, [arg_parsing.IMAGE_RESIZE_SHAPE,arg_parsing.IMAGE_RESIZE_SHAPE])
     red, green, blue = tf.split(img, 3, 2)
     blue = tf.cast(blue, tf.float32)-arg_parsing.MEAN[0]
     green = tf.cast(green, tf.float32)-arg_parsing.MEAN[1]
@@ -56,7 +57,7 @@ def read_and_decode(filename):
     return img, label
 
 def process_inputs(mode):
-    data_dir = os.path.join(arg_parsing.DATASET_DIR)
+    data_dir = os.path.join(FLAGS.dataset_dir)
 
     if mode == "training":
         filename = os.path.join(data_dir, 'train.tfrecords')
@@ -78,7 +79,7 @@ def process_inputs(mode):
                                                      shuffle=shuffle)
 
 
-    if arg_parsing.USE_FP16:
+    if FLAGS.use_fp16:
         images = tf.cast(images, tf.float16)
         labels = tf.cast(labels, tf.float16)
 
