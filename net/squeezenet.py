@@ -16,7 +16,7 @@ import arg_parsing
 wd = arg_parsing.WEIGHT_DECAY # Weight decay
 NUM_CLASSES = arg_parsing.NUM_LABELS
 
-def _activation_summary(x):
+def _activation_summary(x,name):
   """Helper to create summaries for activations.
   Creates a summary that provides a histogram of activations.
   Creates a summary that measure the sparsity of activations.
@@ -26,7 +26,7 @@ def _activation_summary(x):
     nothing
   """
   # session. This helps the clarity of presentation on tensorboard.
-  tensor_name = re.sub('tower_[0-9]*/', '', x.op.name)
+  tensor_name = re.sub('tower_[0-9]*/', '', name)
   tf.summary.image(tensor_name, tf.expand_dims(x[:,:,:,0], dim=3))
   tf.summary.histogram(tensor_name + '/activations', x)
   tf.summary.scalar(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
@@ -89,9 +89,9 @@ def _convolution_layer(bottom, shape, name):
         else:
             out = tf.nn.elu(bias)
         
-        # Add summary to Tensorboard
-        _activation_summary(out)
-        return out
+    # Add summary to Tensorboard
+    _activation_summary(out,name)
+    return out
 
 def _max_pool(bottom, name):
     pool = tf.nn.max_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
@@ -99,7 +99,7 @@ def _max_pool(bottom, name):
 #    print('Layer name: %s' % name)
 #    print('Layer shape:%s' % str(pool.get_shape()))
 #    print('---------------------------------')
-    _activation_summary(pool)
+    _activation_summary(pool,name)
     return pool
 
 def inference(images):
