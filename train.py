@@ -193,7 +193,7 @@ def train_dis_():
 
             val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/FLAGS.batch_size))
             val_acc_sum = val(loss)
-            all_hooks=[tf.train.NanTensorHook(loss)]
+            all_hooks=[tf.train.NanTensorHook(loss), tf.train.StopAtStepHook(last_step=FLAGS.max_steps)]
             if FLAGS.debug:
                 all_hooks.append(tfdbg.LocalCLIDebugHook(ui_type='curses'))
             if FLAGS.finetune:
@@ -218,7 +218,12 @@ def train_dis_():
                     print('-------------------------')
                 total_loss = 0
                 start_time = time.time()
-                for i in range(1, FLAGS.max_steps+1):
+#                for i in range(1, FLAGS.max_steps+1):
+                i=0
+                while True:
+                    i+=1
+                    if sess.should_stop():
+                        break
                     _,loss_value = sess.run([train_op,loss])
                     total_loss += loss_value
                     if i % FLAGS.log_frequency == 0:
@@ -234,6 +239,6 @@ def train_dis_():
                         total_val_accu=0
                         for j in range(val_step):
                             total_val_accu+=sess.run(val_acc_sum)
-                        print('%s: validation total accuracy = %.4f (%.3f sec %d batches)'
-                              % (datetime.now(), total_val_accu/float(val_step), float(time.time()-start_time), val_step))
+                        print('%s: step %d validation total accuracy = %.4f (%.3f sec %d batches)'
+                              % (datetime.now(), i, total_val_accu/float(val_step), float(time.time()-start_time), val_step))
                         start_time = time.time()
