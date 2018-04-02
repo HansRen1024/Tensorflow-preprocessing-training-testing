@@ -46,7 +46,6 @@ def _inverted_bottleneck(input, up_sample_rate, channels, subsample,name):
     return output
 
 def inference(images):
-    print('network: mobilenet v2')
     with tf.variable_scope('conv0',reuse=tf.AUTO_REUSE) :
         output = tc.layers.conv2d(images, 32, 3, 2,normalizer_fn=normalizer, normalizer_params=bn_params)
         _activation_summary(output,'conv0')
