@@ -27,7 +27,7 @@ def _activation_summary(x,name):
     tensor_name = re.sub('tower_[0-9]*/', '', name)
     tf.summary.image(tensor_name, tf.expand_dims(x[:,:,:,0], dim=3))
     tf.summary.histogram(tensor_name + '/activations', x)
-#    tf.summary.scalar(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
+    tf.summary.scalar(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
 
 def _inverted_bottleneck(input, up_sample_rate, channels, subsample,name):
     with tf.variable_scope(name,reuse=tf.AUTO_REUSE) :
@@ -42,13 +42,13 @@ def _inverted_bottleneck(input, up_sample_rate, channels, subsample,name):
                                   normalizer_fn=normalizer, normalizer_params=bn_params)
         if input.get_shape().as_list()[-1] == channels:
             output = tf.add(input, output)
-        _activation_summary(output,name)
+    _activation_summary(output,name)
     return output
 
 def inference(images):
     with tf.variable_scope('conv0',reuse=tf.AUTO_REUSE) :
         output = tc.layers.conv2d(images, 32, 3, 2,normalizer_fn=normalizer, normalizer_params=bn_params)
-        _activation_summary(output,'conv0')
+    _activation_summary(output,'conv0')
     output = _inverted_bottleneck(output, 1, 16, 0, 'dw_conv1')
     output = _inverted_bottleneck(output, 6, 24, 1, 'dw_conv2')
     output = _inverted_bottleneck(output, 6, 24, 0, 'dw_conv3')
@@ -68,10 +68,10 @@ def inference(images):
     output = _inverted_bottleneck(output, 6, 320, 0, 'dw_conv17')
     with tf.variable_scope('conv18',reuse=tf.AUTO_REUSE) :
         output = tc.layers.conv2d(output, 1280, 1, normalizer_fn=normalizer, normalizer_params=bn_params)
-        _activation_summary(output,'conv18')
+    _activation_summary(output,'conv18')
     output = tc.layers.avg_pool2d(output, 7)
     with tf.variable_scope('conv19',reuse=tf.AUTO_REUSE) :
         output = tc.layers.conv2d(output, arg_parsing.NUM_LABELS, 1, activation_fn=None)
-        _activation_summary(output,'conv19')
+    _activation_summary(output,'conv19')
     logits = tf.reduce_mean(output, [1,2], name='logits')
     return logits
