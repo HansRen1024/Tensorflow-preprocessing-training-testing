@@ -333,7 +333,7 @@ def resnet_v2(inputs,
         net = slim.batch_norm(net, activation_fn=tf.nn.relu, scope='postnorm')
         if global_pool:
           # Global average pooling.
-          net = tf.reduce_mean(net, [1, 2], name='pool5', keep_dims=True)
+          net = tf.reduce_mean(net, [1, 2], name='pool5', keepdims=True)
         if num_classes is not None:
           net = slim.conv2d(net, num_classes, [1, 1], activation_fn=None,
                             normalizer_fn=None, scope='logits')
@@ -350,7 +350,6 @@ def resnet_v2_50(inputs,
                  reuse=None,
                  scope='resnet_v2_50'):
   """ResNet-50 model of [1]. See resnet_v2() for arg and return description."""
-  print('network: resnet_v2_50')
   blocks = [
       Block(
           'block1', bottleneck, [(256, 64, 1)] * 2 + [(256, 64, 2)]),
@@ -369,7 +368,6 @@ def resnet_v2_101(inputs,
                   reuse=None,
                   scope='resnet_v2_101'):
   """ResNet-101 model of [1]. See resnet_v2() for arg and return description."""
-  print('network: resnet_v2_101')
   blocks = [
       Block(
           'block1', bottleneck, [(256, 64, 1)] * 2 + [(256, 64, 2)]),
@@ -388,7 +386,6 @@ def resnet_v2_152(inputs,
                   reuse=None,
                   scope='resnet_v2_152'):
   """ResNet-152 model of [1]. See resnet_v2() for arg and return description."""
-  print('network: resnet_v2_152')
   blocks = [
       Block(
           'block1', bottleneck, [(256, 64, 1)] * 2 + [(256, 64, 2)]),
@@ -407,7 +404,6 @@ def resnet_v2_200(inputs,
                   reuse=None,
                   scope='resnet_v2_200'):
   """ResNet-200 model of [2]. See resnet_v2() for arg and return description."""
-  print('network: resnet_v2_200')
   blocks = [
       Block(
           'block1', bottleneck, [(256, 64, 1)] * 2 + [(256, 64, 2)]),
