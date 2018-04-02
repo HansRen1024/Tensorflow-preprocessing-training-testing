@@ -40,7 +40,6 @@ def _dw_conv(input,st,num_outputs,name):
     return pconv
 
 def inference(images):
-    print('network: mobilenet')
     with tf.variable_scope('conv0',reuse=tf.AUTO_REUSE) :
         output = tc.layers.conv2d(images, num_outputs=32, kernel_size=3, stride=2,
                                                  normalizer_fn=normalizer, normalizer_params=bn_params)
