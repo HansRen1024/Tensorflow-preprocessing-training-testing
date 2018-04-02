@@ -97,12 +97,12 @@ def printInfo():
     if arg_parsing.NET == 'resnet':
         print('Layer nums: %d' %arg_parsing.RESNET_LAYER_NUM)
     print('Initial learning rate: %f' %FLAGS.lr)
+    print('Batch size: %d' %FLAGS.batch_size)
+    print('Max steps: %d' %FLAGS.max_steps)
     print('Dataset dir: %s' %FLAGS.dataset_dir)
     print('Model dir: %s' %FLAGS.model_dir)
     if FLAGS.finetune:
         print('Finetune dir: %s' %FLAGS.finetune)
-    print('Batch size: %d' %FLAGS.batch_size)
-    print('Max steps: %d' %FLAGS.max_steps)
     print('-------------------------')
 
 def train():
@@ -134,10 +134,12 @@ def train():
             save_summaries_secs=None,
             log_step_count_steps=None) as sess:
         if FLAGS.finetune:
-            print('Load Pretrained model')
+            print('Load Pre-trained model...')
             ckpt = tf.train.get_checkpoint_state(FLAGS.finetune)
             if ckpt and ckpt.model_checkpoint_path:
                 saver.restore(sess, ckpt.model_checkpoint_path)
+            else:
+                raise ValueError('Failed to load model.')
             print('-------------------------')
         total_loss = 0
         start_time = time.time()
