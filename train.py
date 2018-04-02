@@ -51,16 +51,19 @@ def _loss(logits, labels):
     tf.add_to_collection('losses', cross_entropy_mean)
     return tf.add_n(tf.get_collection('losses'), name='total_loss')
 
-def _optimization(total_loss, global_step):
-    num_batches_per_epoch = arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN / FLAGS.batch_size
-    decay_steps = int(num_batches_per_epoch * arg_parsing.NUM_EPOCHS_PER_DECAY)
-    lr = tf.train.exponential_decay(FLAGS.lr,
-                                    global_step,
-                                    decay_steps,
-                                    arg_parsing.LEARNING_RATE_DECAY_FACTOR,
-                                    staircase=True)
+def _lr(global_step):
     with tf.name_scope("lr"):
+        num_batches_per_epoch = arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN / FLAGS.batch_size
+        decay_steps = int(num_batches_per_epoch * arg_parsing.NUM_EPOCHS_PER_DECAY)
+        lr = tf.train.exponential_decay(FLAGS.lr,
+                                        global_step,
+                                        decay_steps,
+                                        arg_parsing.LEARNING_RATE_DECAY_FACTOR,
+                                        staircase=True)
         tf.summary.scalar('lr', lr)
+    return lr
+
+def _optimization(total_loss, global_step,lr):
     loss_averages = tf.train.ExponentialMovingAverage(0.9, name='avg')
     losses = tf.get_collection('losses')
     loss_averages_op = loss_averages.apply(losses + [total_loss])
@@ -108,12 +111,13 @@ def printInfo():
 def train():
     printInfo()
     global_step = tf.Variable(0, dtype=tf.int32, name='global_step', trainable=False)
+    lr=_lr(global_step)
     with tf.name_scope("train_process"):
         with tf.device('/cpu:0'):
             images, labels = dataset.process_inputs("training")
         logits = _logits(images)
         loss = _loss(logits, labels)  
-        train_op = _optimization(loss, global_step)
+        train_op = _optimization(loss, global_step,lr)
 #    with tf.name_scope("global_step"):
 #        tf.summary.scalar('global_step', global_step)
     val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/FLAGS.batch_size))
@@ -177,12 +181,13 @@ def train_dis_():
         with tf.device(tf.train.replica_device_setter(worker_device="/job:worker/task:%d" 
                                                       %FLAGS.task_index,cluster=cluster)):
             global_step = tf.Variable(0, dtype=tf.int32, name='global_step', trainable=False)
+            lr=_lr(global_step)
             with tf.name_scope("train_process"):
                 with tf.device('/cpu:0'):
                     images, labels = dataset.process_inputs("training")
                 logits = _logits(images)
                 loss = _loss(logits, labels)
-                train_op = _optimization(loss, global_step)
+                train_op = _optimization(loss, global_step,lr)
 #            with tf.name_scope("global_step"):
 #                tf.summary.scalar('global_step', global_step)
 
