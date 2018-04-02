@@ -36,14 +36,14 @@ def _dw_conv(input,st,num_outputs,name):
         dconv = tc.layers.separable_conv2d(input,None,3,1,st,activation_fn=tf.nn.relu6,
                                            normalizer_fn=normalizer, normalizer_params=bn_params)
         pconv = tc.layers.conv2d(dconv, num_outputs, 1, normalizer_fn=normalizer, normalizer_params=bn_params)
-        _activation_summary(pconv,name)
+    _activation_summary(pconv,name)
     return pconv
 
 def inference(images):
     with tf.variable_scope('conv0',reuse=tf.AUTO_REUSE) :
         output = tc.layers.conv2d(images, num_outputs=32, kernel_size=3, stride=2,
                                                  normalizer_fn=normalizer, normalizer_params=bn_params)
-        _activation_summary(output,'conv0')
+    _activation_summary(output,'conv0')
     output = _dw_conv(output,1,64,'dw_conv1')
     output = _dw_conv(output,2,128,'dw_conv2')
     output = _dw_conv(output,1,128,'dw_conv3')
@@ -61,6 +61,6 @@ def inference(images):
     tf.summary.image("pool", tf.expand_dims(output[:,:,:,0], dim=3))
     with tf.variable_scope('conv10',reuse=tf.AUTO_REUSE) :
         output = tc.layers.conv2d(output, arg_parsing.NUM_LABELS, 1, activation_fn=None)
-        _activation_summary(output,'conv10')
+    _activation_summary(output,'conv10')
     logits = tf.reduce_mean(output, [1,2], name='logits')
     return logits
