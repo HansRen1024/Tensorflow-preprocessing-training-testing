@@ -76,29 +76,46 @@ def _optimization(total_loss, global_step):
     return train_op
 
 def val(train_loss):
-    with tf.device('/cpu:0'):
-        val_images, val_labels = dataset.process_inputs("val")
-    val_logits = _logits(val_images)
-    val_loss = _loss(val_logits, val_labels)
+    with tf.name_scope("val_process"):
+        with tf.device('/cpu:0'):
+            val_images, val_labels = dataset.process_inputs("val")
+        val_logits = _logits(val_images)
+        val_loss = _loss(val_logits, val_labels)
     
-    val_acc = tf.nn.in_top_k(val_logits,val_labels,1)
-    val_acc_sum = tf.cast(val_acc,tf.float32)
-    val_acc_sum = tf.reduce_mean(val_acc_sum)
+        val_acc = tf.nn.in_top_k(val_logits,val_labels,1)
+        val_acc_sum = tf.cast(val_acc,tf.float32)
+        val_acc_sum = tf.reduce_mean(val_acc_sum)
     
     with tf.name_scope("loss"):
         tf.summary.scalar('train_loss', train_loss)
         tf.summary.scalar('val_loss', val_loss)
     return val_acc_sum
 
+def printInfo():
+    print('-------------------------')
+    print('Network: %s' %arg_parsing.NET)
+    if arg_parsing.NET == 'resnet':
+        print('Layer nums: %d' %arg_parsing.RESNET_LAYER_NUM)
+    print('Initial learning rate: %f' %FLAGS.lr)
+    print('Dataset dir: %s' %FLAGS.dataset_dir)
+    print('Model dir: %s' %FLAGS.model_dir)
+    if FLAGS.finetune:
+        print('Finetune dir: %s' %FLAGS.finetune)
+    print('Batch size: %d' %FLAGS.batch_size)
+    print('Max steps: %d' %FLAGS.max_steps)
+    print('-------------------------')
+
 def train():
+    printInfo()
     global_step = tf.Variable(0, dtype=tf.int32, name='global_step', trainable=False)
-    with tf.device('/cpu:0'):
-        images, labels = dataset.process_inputs("training")
-    logits = _logits(images)
-    loss = _loss(logits, labels)  
-    train_op = _optimization(loss, global_step)
-    with tf.name_scope("global_step"):
-        tf.summary.scalar('global_step', global_step)
+    with tf.name_scope("train_process"):
+        with tf.device('/cpu:0'):
+            images, labels = dataset.process_inputs("training")
+        logits = _logits(images)
+        loss = _loss(logits, labels)  
+        train_op = _optimization(loss, global_step)
+#    with tf.name_scope("global_step"):
+#        tf.summary.scalar('global_step', global_step)
     val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/FLAGS.batch_size))
     val_acc_sum = val(loss)
     all_hooks=[tf.train.NanTensorHook(loss)]
@@ -121,6 +138,7 @@ def train():
             ckpt = tf.train.get_checkpoint_state(FLAGS.finetune)
             if ckpt and ckpt.model_checkpoint_path:
                 saver.restore(sess, ckpt.model_checkpoint_path)
+            print('-------------------------')
         total_loss = 0
         start_time = time.time()
         for i in range(1, FLAGS.max_steps+1):
@@ -132,7 +150,7 @@ def train():
                 eg_per_sec = FLAGS.log_frequency * FLAGS.batch_size / duration
                 sec_per_batch = float(duration / FLAGS.log_frequency)
                 avg_loss = total_loss/i
-                print('%s: training step %d cur loss = %.4f avg loss = %.4f (%.1f images/sec, %.3f sec/batch)'
+                print('%s: training step %d cur loss = %.4f avg loss = %.4f (%.1f images/sec %.3f sec/batch)'
                       % (datetime.now(), i, loss_value, avg_loss, eg_per_sec, sec_per_batch))
                 start_time = time.time()
             if i % FLAGS.steps_to_val == 0:
@@ -144,6 +162,7 @@ def train():
                 start_time = time.time()
                 
 def train_dis_():
+    printInfo()
     ps_hosts = arg_parsing.PS_HOSTS.split(",")
     worker_hosts = arg_parsing.WORKER_HOSTS.split(",")
     cluster = tf.train.ClusterSpec({"ps": ps_hosts, "worker": worker_hosts})
@@ -156,17 +175,17 @@ def train_dis_():
         with tf.device(tf.train.replica_device_setter(worker_device="/job:worker/task:%d" 
                                                       %FLAGS.task_index,cluster=cluster)):
             global_step = tf.Variable(0, dtype=tf.int32, name='global_step', trainable=False)
-            with tf.device('/cpu:0'):
-                images, labels = dataset.process_inputs("training")
-            logits = _logits(images)
-            loss = _loss(logits, labels)
-            train_op = _optimization(loss, global_step)
-            with tf.name_scope("global_step"):
-                tf.summary.scalar('global_step', global_step)
+            with tf.name_scope("train_process"):
+                with tf.device('/cpu:0'):
+                    images, labels = dataset.process_inputs("training")
+                logits = _logits(images)
+                loss = _loss(logits, labels)
+                train_op = _optimization(loss, global_step)
+#            with tf.name_scope("global_step"):
+#                tf.summary.scalar('global_step', global_step)
 
             val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/FLAGS.batch_size))
             val_acc_sum = val(loss)
-
             all_hooks=[tf.train.NanTensorHook(loss)]
             if FLAGS.debug:
                 all_hooks.append(tfdbg.LocalCLIDebugHook(ui_type='curses'))
@@ -189,6 +208,7 @@ def train_dis_():
                     ckpt = tf.train.get_checkpoint_state(FLAGS.finetune)
                     if ckpt and ckpt.model_checkpoint_path:
                         saver.restore(sess, ckpt.model_checkpoint_path)
+                    print('-------------------------')
                 total_loss = 0
                 start_time = time.time()
                 for i in range(1, FLAGS.max_steps+1):
@@ -200,7 +220,7 @@ def train_dis_():
                         eg_per_sec = FLAGS.log_frequency * FLAGS.batch_size / duration
                         sec_per_batch = float(duration / FLAGS.log_frequency)
                         avg_loss = total_loss/i
-                        print('%s: training step %d cur loss = %.4f avg loss = %.4f (%.1f images/sec, %.3f sec/batch)'
+                        print('%s: training step %d cur loss = %.4f avg loss = %.4f (%.1f images/sec %.3f sec/batch)'
                               % (datetime.now(), i, loss_value, avg_loss, eg_per_sec, sec_per_batch))
                         start_time = time.time()
                     if i % FLAGS.steps_to_val == 0:
