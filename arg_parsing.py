@@ -13,7 +13,7 @@ from __future__ import print_function
 import tensorflow as tf
 import argparse
 
-NET = 'resnet' # squeezenet or mobilenet or mobilenetv2 or resnet ...
+NET = 'squeezenet' # squeezenet or mobilenet or mobilenetv2 or resnet ...
 RESNET_LAYER_NUM = 101 # 50 or 101 or 152 or 200 or ...
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 27013 # number of training data
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 4996 # number of validation data 
@@ -27,8 +27,6 @@ LEARNING_RATE_DECAY_FACTOR = 0.5
 WEIGHT_DECAY = 2e-4 # used for squeezenet and resnet
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--mode', type=str,
-                    help='Either `training` or `testing` or `training_dis` .')
 
 INITIAL_LEARNING_RATE = 0.01
 STEPS_TO_VAL = 1000
@@ -41,7 +39,9 @@ LOG_FREQUENCY = 100 # How often to log results to the console.
 MAX_STEPS = 10000 # Number of batches to run. If distributiong, all GPU batches.
 LOG_DEVICE_PLACEMENT = False # Whether to log device placement.
 USE_FP16 = False # Train the model using fp16.
+MODE = 'training'
 
+parser.add_argument('--mode', type=str,default=MODE, help='Either `training` or `testing`.')
 parser.add_argument('--lr', type=float, default=INITIAL_LEARNING_RATE)
 parser.add_argument('--steps_to_val', type=int, default=STEPS_TO_VAL)
 parser.add_argument('--debug', type=bool, default=DEBUG)
@@ -55,8 +55,8 @@ parser.add_argument('--log_device_placement', type=bool, default=LOG_DEVICE_PLAC
 parser.add_argument('--use_fp16', type=bool, default=USE_FP16)
 
 # For distributed
-PS_HOSTS = '10.100.0.101:2222' # Comma-separated list of hostname:port pairs
-WORKER_HOSTS = '10.100.0.101:2224,10.100.0.100:2225' # Comma-separated list of hostname:port pairs
+PS_HOSTS = '10.107.3.151:2222' # Comma-separated list of hostname:port pairs
+WORKER_HOSTS = '10.107.3.151:2224,10.107.3.120:2225' # Comma-separated list of hostname:port pairs
 
 parser.add_argument("--job_name", type=str,
                     help="One of 'ps', 'worker'")
