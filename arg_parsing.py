@@ -13,8 +13,8 @@ from __future__ import print_function
 import tensorflow as tf
 import argparse
 
-NET = 'squeezenet' # squeezenet or mobilenet or mobilenetv2 or resnet ...
-RESNET_LAYER_NUM = 50 # 50 or 101 or 152 or 200 or ...
+NET = 'resnet' # squeezenet or mobilenet or mobilenetv2 or resnet ...
+RESNET_LAYER_NUM = 101 # 50 or 101 or 152 or 200 or ...
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 27013 # number of training data
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 4996 # number of validation data 
 NUM_EXAMPLES_PER_EPOCH_FOR_TEST = 4996 # number of testing data
@@ -35,7 +35,7 @@ STEPS_TO_VAL = 1000
 DEBUG = False
 DATASET_DIR = 'data/' # Path to data directory.
 MODEL_DIR = 'models/' # Directory where to write event logs and checkpoint.
-FINETUNE_DIR = None 
+FINETUNE_DIR = None
 BATCH_SIZE = 4
 LOG_FREQUENCY = 100 # How often to log results to the console.
 MAX_STEPS = 10000 # Number of batches to run. If distributiong, all GPU batches.
@@ -68,8 +68,8 @@ if NET == 'squeezenet':
     IMAGE_RESIZE_SHAPE = 227 # image shape which suits for network
 elif NET == 'mobilenet' or NET == 'mobilenetv2' or NET == 'resnet':
     IMAGE_RESIZE_SHAPE = 224
-
-b = tf.Variable(mean[0], dtype=tf.float32, name='b', trainable=False)
-g = tf.Variable(mean[1], dtype=tf.float32, name='g', trainable=False)
-r = tf.Variable(mean[2], dtype=tf.float32, name='r', trainable=False)
-MEAN = [b, g, r]
+with tf.name_scope("mean_values"):
+    b = tf.Variable(mean[0], dtype=tf.float32, name='b', trainable=False)
+    g = tf.Variable(mean[1], dtype=tf.float32, name='g', trainable=False)
+    r = tf.Variable(mean[2], dtype=tf.float32, name='r', trainable=False)
+    MEAN = [b, g, r]
