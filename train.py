@@ -236,9 +236,13 @@ def train_dis_():
                               % (datetime.now(), i, loss_value, avg_loss, eg_per_sec, sec_per_batch))
                         start_time = time.time()
                     if i % FLAGS.steps_to_val == 0:
-                        total_val_accu=0
-                        for j in range(val_step):
-                            total_val_accu+=sess.run(val_acc_sum)
-                        print('%s: step %d validation total accuracy = %.4f (%.3f sec %d batches)'
-                              % (datetime.now(), i, total_val_accu/float(val_step), float(time.time()-start_time), val_step))
-                        start_time = time.time()
+                        try:
+                            total_val_accu=0
+                            for j in range(val_step):
+                                total_val_accu+=sess.run(val_acc_sum)
+                        except RuntimeError:
+                            print('Done')
+                        else:
+                            print('%s: step %d validation total accuracy = %.4f (%.3f sec %d batches)'
+                                  % (datetime.now(), i, total_val_accu/float(val_step), float(time.time()-start_time), val_step))
+                            start_time = time.time()
