@@ -63,14 +63,24 @@ def _lr(global_step):
         tf.summary.scalar('lr', lr)
     return lr
 
-def _optimization(total_loss, global_step,lr):
+def _optimization(total_loss, global_step,lr, issync, num_workers=0):
     loss_averages = tf.train.ExponentialMovingAverage(0.9, name='avg')
     losses = tf.get_collection('losses')
     loss_averages_op = loss_averages.apply(losses + [total_loss])
     with tf.control_dependencies([loss_averages_op]):
         opt = tf.train.GradientDescentOptimizer(lr)
         grads = opt.compute_gradients(total_loss)
-    apply_gradient_op = opt.apply_gradients(grads, global_step=global_step)
+    if issync:
+        global sync_replicas_hook
+        opt = tf.train.SyncReplicasOptimizer(opt,
+                                             replicas_to_aggregate=num_workers,
+                                             total_num_replicas=num_workers,
+                                             use_locking=True)
+        apply_gradient_op = opt.apply_gradients(grads, global_step=global_step)
+        sync_replicas_hook = opt.make_session_run_hook(is_chief=(FLAGS.task_index == 0))
+    else:
+        apply_gradient_op = opt.apply_gradients(grads, global_step=global_step)
+    
     variable_averages = tf.train.ExponentialMovingAverage(
                         arg_parsing.MOVING_AVERAGE_DECAY, global_step)
     variables_averages_op = variable_averages.apply(tf.trainable_variables())
@@ -106,9 +116,13 @@ def printInfo():
     print('Model dir: %s' %FLAGS.model_dir)
     if FLAGS.finetune:
         print('Finetune dir: %s' %FLAGS.finetune)
+    if FLAGS.issync:
+        print('Synchronized training')
     print('-------------------------')
 
 def train():
+    if FLAGS.issync:
+        raise ValueError("Please set 'issync' to False when non-distribution")
     printInfo()
     global_step = tf.Variable(0, dtype=tf.int32, name='global_step', trainable=False)
     lr=_lr(global_step)
@@ -117,7 +131,7 @@ def train():
             images, labels = dataset.process_inputs("training")
         logits = _logits(images)
         loss = _loss(logits, labels)  
-        train_op = _optimization(loss, global_step,lr)
+        train_op = _optimization(loss, global_step,lr, FLAGS.issync)
 #    with tf.name_scope("global_step"):
 #        tf.summary.scalar('global_step', global_step)
     val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/FLAGS.batch_size))
@@ -187,13 +201,15 @@ def train_dis_():
                     images, labels = dataset.process_inputs("training")
                 logits = _logits(images)
                 loss = _loss(logits, labels)
-                train_op = _optimization(loss, global_step,lr)
+                train_op = _optimization(loss, global_step,lr, FLAGS.issync, len(worker_hosts))
 #            with tf.name_scope("global_step"):
 #                tf.summary.scalar('global_step', global_step)
 
             val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/FLAGS.batch_size))
             val_acc_sum = val(loss)
             all_hooks=[tf.train.NanTensorHook(loss), tf.train.StopAtStepHook(last_step=FLAGS.max_steps)]
+            if FLAGS.issync:
+                all_hooks.append(sync_replicas_hook)
             if FLAGS.debug:
                 all_hooks.append(tfdbg.LocalCLIDebugHook(ui_type='curses'))
             if FLAGS.finetune:
@@ -241,7 +257,7 @@ def train_dis_():
                             for j in range(val_step):
                                 total_val_accu+=sess.run(val_acc_sum)
                         except RuntimeError:
-                            print('Done')
+                            print('%s: Done'%datetime.now())
                         else:
                             print('%s: step %d validation total accuracy = %.4f (%.3f sec %d batches)'
                                   % (datetime.now(), i, total_val_accu/float(val_step), float(time.time()-start_time), val_step))
