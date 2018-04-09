@@ -242,11 +242,12 @@ def train_dis_():
                     self._start_time = time.time()
                 
                 def after_run(self, run_context, run_values):
-                    if self._step % FLAGS.steps_to_val == 0 and FLAGS.task_index==0:
-                        for j in range(self._val_step):
-                            self._total_val_accu+=run_context.session.run(val_acc_sum)
-                        print('%s: step %d validation total accuracy = %.4f (%.3f sec %d batches)'
-                              % (datetime.now(), self._step, self._total_val_accu/float(self._val_step), float(time.time()-self._start_time), self._val_step))
+                    if self._step % FLAGS.steps_to_val == 0:
+                        if (FLAGS.task_index==0 and FLAGS.issync) or not FLAGS.issync:
+                            for j in range(self._val_step):
+                                self._total_val_accu+=run_context.session.run(val_acc_sum)
+                            print('%s: step %d validation total accuracy = %.4f (%.3f sec %d batches)'
+                                  % (datetime.now(), self._step, self._total_val_accu/float(self._val_step), float(time.time()-self._start_time), self._val_step))
 
             all_hooks=[tf.train.NanTensorHook(loss), tf.train.StopAtStepHook(last_step=FLAGS.max_steps), _LoggerHook(), _ValHook()]
             if FLAGS.issync:
