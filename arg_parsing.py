@@ -19,7 +19,7 @@ NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 27013 # number of training data
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 4996 # number of validation data 
 NUM_EXAMPLES_PER_EPOCH_FOR_TEST = 4996 # number of testing data
 NUM_LABELS = 17 # number of classes
-ORIGIN_IMAGE_SHAPE = 227 # origin image shape that equal to size in list2bin_list.py
+ORIGIN_IMAGE_SHAPE = 227 # origin image shape that equal to the size in list2bin_list.py
 mean = [82.4088, 114.4588, 139.1493] # BGR mean values of training dataset
 MOVING_AVERAGE_DECAY = 0.9999
 NUM_EPOCHS_PER_DECAY = 10 # decrease learning rate every NUM_EPOCHS_PER_DECAY epochs
@@ -36,10 +36,11 @@ MODEL_DIR = 'models/' # Directory where to write event logs and checkpoint.
 FINETUNE_DIR = None
 BATCH_SIZE = 4
 LOG_FREQUENCY = 100 # How often to log results to the console.
-MAX_STEPS = 10000 # Number of batches to run. If distributiong, all GPU batches.
+MAX_STEPS = 5000 # Number of batches to run. If distributiong, all GPU batches.
 LOG_DEVICE_PLACEMENT = False # Whether to log device placement.
 USE_FP16 = False # Train the model using fp16.
 MODE = 'training'
+ISSYNC = False # only for distribution
 
 parser.add_argument('--mode', type=str,default=MODE, help='Either `training` or `testing`.')
 parser.add_argument('--lr', type=float, default=INITIAL_LEARNING_RATE)
@@ -53,10 +54,11 @@ parser.add_argument('--log_frequency', type=int, default=LOG_FREQUENCY)
 parser.add_argument('--max_steps', type=int, default=MAX_STEPS)
 parser.add_argument('--log_device_placement', type=bool, default=LOG_DEVICE_PLACEMENT)
 parser.add_argument('--use_fp16', type=bool, default=USE_FP16)
+parser.add_argument('--issync', type=bool, default=ISSYNC)
 
 # For distributed
-PS_HOSTS = '10.107.3.151:2222' # Comma-separated list of hostname:port pairs
-WORKER_HOSTS = '10.107.3.151:2224,10.107.3.120:2225' # Comma-separated list of hostname:port pairs
+PS_HOSTS = '10.100.0.101:2222' # Comma-separated list of hostname:port pairs
+WORKER_HOSTS = '10.100.0.101:2224,10.100.0.100:2225' # Comma-separated list of hostname:port pairs
 
 parser.add_argument("--job_name", type=str,
                     help="One of 'ps', 'worker'")
