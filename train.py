@@ -207,7 +207,7 @@ def train_dis_():
             val_acc_sum = val(loss)
             class _LoggerHook(tf.train.SessionRunHook):
                 def begin(self):
-                    self._step = 0
+                    self._step = -1
                     self._start_time = time.time()
                     self._total_loss = 0
             
@@ -218,14 +218,11 @@ def train_dis_():
                 def after_run(self, run_context, run_values):
                     loss_value = run_values.results
                     self._total_loss += loss_value
-                    if self._step % FLAGS.log_frequency == 0:
+                    if self._step % FLAGS.log_frequency == 0 and not self._step==0:
                         current_time = time.time()
                         duration = current_time - self._start_time
                         self._start_time = current_time
-                        if self._step==0:
-                            avg_loss = loss_value
-                        else:
-                            avg_loss = self._total_loss/self._step
+                        avg_loss = self._total_loss/self._step
                         eg_per_sec = FLAGS.log_frequency * FLAGS.batch_size / duration
                         sec_per_batch = float(duration / FLAGS.log_frequency)
                         print('%s: training step %d cur loss = %.4f avg loss = %.4f (%.1f images/sec %.3f sec/batch)'
@@ -233,7 +230,7 @@ def train_dis_():
             
             class _ValHook(tf.train.SessionRunHook):
                 def begin(self):
-                    self._step = 0
+                    self._step = -1
                     self._val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/FLAGS.batch_size))
                     
                 def before_run(self, run_context):
@@ -242,7 +239,7 @@ def train_dis_():
                     self._start_time = time.time()
                 
                 def after_run(self, run_context, run_values):
-                    if self._step % FLAGS.steps_to_val == 0:
+                    if self._step % FLAGS.steps_to_val == 0 and not self._step==0:
                         if (FLAGS.task_index==0 and FLAGS.issync) or not FLAGS.issync:
                             for j in range(self._val_step):
                                 self._total_val_accu+=run_context.session.run(val_acc_sum)
