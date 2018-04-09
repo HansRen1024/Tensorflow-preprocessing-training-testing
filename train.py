@@ -109,6 +109,7 @@ def printInfo():
     print('Network: %s' %arg_parsing.NET)
     if arg_parsing.NET == 'resnet':
         print('Layer nums: %d' %arg_parsing.RESNET_LAYER_NUM)
+    print('Issync: %s' %FLAGS.issync)
     print('Initial learning rate: %f' %FLAGS.lr)
     print('Batch size: %d' %FLAGS.batch_size)
     print('Max steps: %d' %FLAGS.max_steps)
@@ -116,8 +117,6 @@ def printInfo():
     print('Model dir: %s' %FLAGS.model_dir)
     if FLAGS.finetune:
         print('Finetune dir: %s' %FLAGS.finetune)
-    if FLAGS.issync:
-        print('Synchronized training')
     print('-------------------------')
 
 def train():
@@ -238,8 +237,6 @@ def train_dis_():
                 i=0
                 while True:
                     i+=1
-                    if sess.should_stop():
-                        break
                     _,loss_value = sess.run([train_op,loss])
                     total_loss += loss_value
                     if i % FLAGS.log_frequency == 0:
@@ -251,14 +248,13 @@ def train_dis_():
                         print('%s: training step %d cur loss = %.4f avg loss = %.4f (%.1f images/sec %.3f sec/batch)'
                               % (datetime.now(), i, loss_value, avg_loss, eg_per_sec, sec_per_batch))
                         start_time = time.time()
+                    if sess.should_stop():
+                        print('%s: Done'%datetime.now())
+                        break
                     if i % FLAGS.steps_to_val == 0:
-                        try:
-                            total_val_accu=0
-                            for j in range(val_step):
-                                total_val_accu+=sess.run(val_acc_sum)
-                        except RuntimeError:
-                            print('%s: Done'%datetime.now())
-                        else:
-                            print('%s: step %d validation total accuracy = %.4f (%.3f sec %d batches)'
-                                  % (datetime.now(), i, total_val_accu/float(val_step), float(time.time()-start_time), val_step))
-                            start_time = time.time()
+                        total_val_accu=0
+                        for j in range(val_step):
+                            total_val_accu+=sess.run(val_acc_sum)
+                        print('%s: step %d validation total accuracy = %.4f (%.3f sec %d batches)'
+                              % (datetime.now(), i, total_val_accu/float(val_step), float(time.time()-start_time), val_step))
+                        start_time = time.time()
