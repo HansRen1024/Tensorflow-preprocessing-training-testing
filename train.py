@@ -104,9 +104,8 @@ def val(train_loss):
         tf.summary.scalar('val_loss', val_loss)
     return val_acc_sum
 
-
-
 def train():
+    print('START')
     if FLAGS.issync:
         raise ValueError("Please set 'issync' to False when non-distribution")
     global_step = tf.Variable(0, dtype=tf.int32, name='global_step', trainable=False)
@@ -176,6 +175,7 @@ def train_dis_():
     if FLAGS.job_name == "ps":
         server.join()
     if FLAGS.job_name == "worker":
+        print('START')
         with tf.device(tf.train.replica_device_setter(worker_device="/job:worker/task:%d" 
                                                       %FLAGS.task_index,cluster=cluster)):
             global_step = tf.Variable(0, dtype=tf.int32, name='global_step', trainable=False)
@@ -193,18 +193,18 @@ def train_dis_():
             val_acc_sum = val(loss)
             class _LoggerHook(tf.train.SessionRunHook):
                 def begin(self):
-                    self._step = -1
+#                    self._step = 0
                     self._start_time = time.time()
                     self._total_loss = 0
                 def before_run(self, run_context):
-                    self._step += 1
+#                    self._step += 1
                     return tf.train.SessionRunArgs(loss)
                 def after_run(self, run_context, run_values):
-                    if FLAGS.issync:
-                        self._step = run_context.session.run(global_step)
+#                    if FLAGS.issync:
+                    self._step = run_context.session.run(global_step)
                     loss_value = run_values.results
                     self._total_loss += loss_value
-                    if self._step % FLAGS.log_frequency == 0 and not self._step==0:
+                    if self._step % FLAGS.log_frequency == 0:
                         current_time = time.time()
                         duration = current_time - self._start_time
                         self._start_time = current_time
@@ -215,35 +215,39 @@ def train_dis_():
                               % (datetime.now(), self._step, loss_value, avg_loss, eg_per_sec, sec_per_batch))
             class _ValHook(tf.train.SessionRunHook):
                 def begin(self):
-                    self._step = -1
+#                    self._step = 0
                     self._val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/FLAGS.batch_size))
                 def before_run(self, run_context):
-                    self._step += 1
+#                    self._step += 1
                     self._total_val_accu = 0
                     self._start_time = time.time()
                 def after_run(self, run_context, run_values):
-                    if FLAGS.issync:
-                        self._step = run_context.session.run(global_step)
-                        if self._step>=FLAGS.max_steps:
-                            run_context.request_stop()
-                    if self._step % FLAGS.steps_to_val == 0 and not self._step==0:
+#                    if FLAGS.issync:
+                    self._step = run_context.session.run(global_step)
+                    if self._step % FLAGS.steps_to_val == 0:
                         if (FLAGS.task_index==0 and FLAGS.issync) or not FLAGS.issync:
                             for j in range(self._val_step):
                                 self._total_val_accu+=run_context.session.run(val_acc_sum)
-                            print('%s: step %d validation total accuracy = %.4f (%.3f sec %d batches)'
+                            print('%s: step %d validation accuracy = %.4f (%.3f sec %d batches)'
                                   % (datetime.now(), self._step, self._total_val_accu/float(self._val_step), float(time.time()-self._start_time), self._val_step))
+
             class _ExitHook(tf.train.SessionRunHook): # same as StopAtStepHook
                 def begin(self):
-                    pass
+                    self._val_step = int(math.ceil(arg_parsing.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL/FLAGS.batch_size))
                 def before_run(self, run_context):
-                    pass
+                    self._total_val_accu = 0
                 def after_run(self, run_context, run_values):
-                    if FLAGS.issync:
-                        self._step = run_context.session.run(global_step)
-                        if self._step>=FLAGS.max_steps:
-                            run_context.request_stop()
+                    self._step = run_context.session.run(global_step)
+                    if self._step>=FLAGS.max_steps:
+                        if FLAGS.task_index==0:
+                            for j in range(self._val_step*2):
+                                self._total_val_accu+=run_context.session.run(val_acc_sum)
+                            print('%s: last step %d validation final accuracy = %.4f '
+                                  % (datetime.now(), self._step, self._total_val_accu/float(self._val_step*2)))
+                        run_context.request_stop()
 
-            all_hooks=[tf.train.NanTensorHook(loss), tf.train.StopAtStepHook(last_step=FLAGS.max_steps), _LoggerHook(), _ValHook()]
+#            all_hooks=[tf.train.NanTensorHook(loss), tf.train.StopAtStepHook(last_step=FLAGS.max_steps), _LoggerHook(), _ValHook()]
+            all_hooks=[tf.train.NanTensorHook(loss), _ExitHook(), _LoggerHook(), _ValHook()]
             if FLAGS.issync:
                 all_hooks.append(sync_replicas_hook)
             if FLAGS.debug:
@@ -270,3 +274,4 @@ def train_dis_():
                     print('-------------------------')
                 while not sess.should_stop():
                     sess.run(train_op)
+                print('DONE')
