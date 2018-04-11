@@ -29,14 +29,14 @@ WEIGHT_DECAY = 2e-4 # used for squeezenet and resnet
 parser = argparse.ArgumentParser()
 
 INITIAL_LEARNING_RATE = 0.01
-STEPS_TO_VAL = 1000
+STEPS_TO_VAL = 500
 DEBUG = False
 DATASET_DIR = 'data/' # Path to data directory.
 MODEL_DIR = 'models/' # Directory where to write event logs and checkpoint.
 FINETUNE_DIR = None
 BATCH_SIZE = 4
-LOG_FREQUENCY = 100 # How often to log results to the console.
-MAX_STEPS = 5000 # Number of batches to run. If distributiong, all GPU batches.
+LOG_FREQUENCY = 10 # How often to log results to the console.
+MAX_STEPS = 1000 # Number of batches to run. If distributiong, all GPU batches.
 LOG_DEVICE_PLACEMENT = False # Whether to log device placement.
 USE_FP16 = False # Train the model using fp16.
 MODE = 'training'
@@ -54,12 +54,12 @@ parser.add_argument('--log_frequency', type=int, default=LOG_FREQUENCY)
 parser.add_argument('--max_steps', type=int, default=MAX_STEPS)
 parser.add_argument('--log_device_placement', type=bool, default=LOG_DEVICE_PLACEMENT)
 parser.add_argument('--use_fp16', type=bool, default=USE_FP16)
-parser.add_argument('--issync', type=bool, default=ISSYNC)
 
 # For distributed
-PS_HOSTS = '10.100.0.101:2222' # Comma-separated list of hostname:port pairs
-WORKER_HOSTS = '10.100.0.101:2224,10.100.0.100:2225' # Comma-separated list of hostname:port pairs
+PS_HOSTS = '10.100.2.100:2222' # Comma-separated list of hostname:port pairs
+WORKER_HOSTS = '10.100.2.100:2224,10.100.3.100:2225' # Comma-separated list of hostname:port pairs
 
+parser.add_argument('--issync', type=bool, default=ISSYNC)
 parser.add_argument("--job_name", type=str,
                     help="One of 'ps', 'worker'")
 parser.add_argument("--task_index", type=int,
