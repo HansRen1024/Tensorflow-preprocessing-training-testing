@@ -102,8 +102,6 @@ def val(train_loss):
     with tf.name_scope("loss"):
         tf.summary.scalar('train_loss', train_loss)
         tf.summary.scalar('val_loss', val_loss)
-    with tf.name_scope("accuracy"):
-        tf.summary.scalar('val_accuracy', val_acc_sum)
     return val_acc_sum
 
 def train():
@@ -202,7 +200,6 @@ def train_dis_():
                     self._local_step += 1
                     return tf.train.SessionRunArgs(loss)
                 def after_run(self, run_context, run_values):
-#                    if FLAGS.issync:
                     self._step = run_context.session.run(global_step)
                     loss_value = run_values.results
                     self._total_loss += loss_value
@@ -242,10 +239,10 @@ def train_dis_():
                 def after_run(self, run_context, run_values):
                     self._step = run_context.session.run(global_step)
                     if self._step>=FLAGS.max_steps:
-                        if FLAGS.task_index==0:
+                        if FLAGS.task_index==0 and not FLAGS.issync:
                             for j in range(self._val_step*2):
                                 self._total_val_accu+=run_context.session.run(val_acc_sum)
-                            print('%s: last step %d validation final accuracy = %.4f (%.3f sec %d batches)'
+                            print('%s: last step %d validation final accuracy = %.4f (%.3f sec(2 times) %d batches)'
                                   % (datetime.now(), self._step, self._total_val_accu/float(self._val_step*2), float(time.time()-self._start_time), self._val_step))
                         run_context.request_stop()
 
