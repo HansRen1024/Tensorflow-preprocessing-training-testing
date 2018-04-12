@@ -247,7 +247,7 @@ def train_dis_():
                         run_context.request_stop()
 
 #            all_hooks=[tf.train.NanTensorHook(loss), tf.train.StopAtStepHook(last_step=FLAGS.max_steps), _LoggerHook(), _ValHook()]
-            all_hooks=[tf.train.NanTensorHook(loss), _ExitHook(), _LoggerHook(), _ValHook()]
+            all_hooks=[tf.train.NanTensorHook(loss), _LoggerHook(), _ValHook(), _ExitHook()]
             if FLAGS.issync:
                 all_hooks.append(sync_replicas_hook)
             if FLAGS.debug:
