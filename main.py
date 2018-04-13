@@ -41,8 +41,9 @@ def printInfo():
     if FLAGS.job_name:
         print('\nDistuibution info: ')
         print('Issync: %s' %FLAGS.issync)
-        print('PS HOSTS: %s' %arg_parsing.PS_HOSTS)
-        print('WORKER HOSTS: %s' %arg_parsing.WORKER_HOSTS)
+        if FLAGS.issync:
+            print('PS HOSTS: %s' %arg_parsing.PS_HOSTS)
+            print('WORKER HOSTS: %s' %arg_parsing.WORKER_HOSTS)
     print('-------------------------')
 
 def main(argv=None):
